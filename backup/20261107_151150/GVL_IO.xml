@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:22:03.2751678" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/globalvars" handleUnknown="implementation">
+      <globalVars name="GVL_IO">
+        <variable name="xQ_Ch8">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch8  (C4)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch9">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch9  (C4)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch10">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch10 (C5)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch11">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch11 (C5)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch12">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch12 (C6)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch13">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch13 (C6)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch14">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch14 (C7)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xQ_Ch15">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> ngõ ra DXP Ch15 (C7)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch8">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch8</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch9">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch9</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch10">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch10</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch11">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch11</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch12">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch12</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch13">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch13</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch14">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch14</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xI_Ch15">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc lại mức tín hiệu DXP Ch15</xhtml>
+          </documentation>
+        </variable>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ngõ vào/ra DXP của TBEN-L5-PLC-11 (map trong Local_IO &gt; DXP &gt; I/O Mapping)
+// Đầu nối: C4 = Ch8/Ch9, C5 = Ch10/Ch11, C6 = Ch12/Ch13, C7 = Ch14/Ch15
+VAR_GLOBAL
+    xQ_Ch8  : BOOL;   // ngõ ra DXP Ch8  (C4)
+    xQ_Ch9  : BOOL;   // ngõ ra DXP Ch9  (C4)
+    xQ_Ch10 : BOOL;   // ngõ ra DXP Ch10 (C5)
+    xQ_Ch11 : BOOL;   // ngõ ra DXP Ch11 (C5)
+    xQ_Ch12 : BOOL;   // ngõ ra DXP Ch12 (C6)
+    xQ_Ch13 : BOOL;   // ngõ ra DXP Ch13 (C6)
+    xQ_Ch14 : BOOL;   // ngõ ra DXP Ch14 (C7)
+    xQ_Ch15 : BOOL;   // ngõ ra DXP Ch15 (C7)
+
+    xI_Ch8  : BOOL;   // đọc lại mức tín hiệu DXP Ch8
+    xI_Ch9  : BOOL;   // đọc lại mức tín hiệu DXP Ch9
+    xI_Ch10 : BOOL;   // đọc lại mức tín hiệu DXP Ch10
+    xI_Ch11 : BOOL;   // đọc lại mức tín hiệu DXP Ch11
+    xI_Ch12 : BOOL;   // đọc lại mức tín hiệu DXP Ch12
+    xI_Ch13 : BOOL;   // đọc lại mức tín hiệu DXP Ch13
+    xI_Ch14 : BOOL;   // đọc lại mức tín hiệu DXP Ch14
+    xI_Ch15 : BOOL;   // đọc lại mức tín hiệu DXP Ch15
+END_VAR</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a716633c-8bec-4cfd-8b41-51c57011579e</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Ngõ vào/ra DXP của TBEN-L5-PLC-11 (map trong Local_IO &gt; DXP &gt; I/O Mapping)
+ Đầu nối: C4 = Ch8/Ch9, C5 = Ch10/Ch11, C6 = Ch12/Ch13, C7 = Ch14/Ch15</xhtml>
+        </documentation>
+      </globalVars>
+    </data>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Object Name="GVL_IO" ObjectId="a716633c-8bec-4cfd-8b41-51c57011579e" />
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

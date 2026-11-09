@@ -1,0 +1,1279 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.7327924" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_Dev_O5D150" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="abPdIn">
+              <type>
+                <array>
+                  <dimension lower="0" upper="1" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> PDin từ GVL_IO, big-endian</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xAlignMode">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: đọc Align (69) mỗi tAlignPoll</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdReadAll">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Lệnh (sườn lên) ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdReadIdent">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteSP1">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteLogic">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteLaser">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteDisplay">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdTestEvt1On">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdTestEvt1Off">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdTestEvt2On">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdTestEvt2Off">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdReadEvents">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="uiSetSP1">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> cm 5..200</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetLogic">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 NO / 1 NC</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetLaser">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 Off / 1 On</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetDisplay">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 Off / 1 On / 2 Rotated</xhtml>
+              </documentation>
+            </variable>
+            <variable name="tAlignPoll">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#500ms" />
+              </initialValue>
+            </variable>
+            <variable name="tEvtPoll">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> chu kỳ đọc index 37 khi PD hợp lệ</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Cảm biến khoảng cách laser ifm O5D150 (IODD vendor 310 / device 372, IO-Link 1.1, PDin 16 bit, không PDout).
+// 1) Cyclic: giải mã PDin + PQI.  2) Event: Test Event qua System Command, đọc danh sách event index 37.
+// 3) Acyclic: SP1, Logic, Limit, Align, Laser, Display... theo bảng GVL_O5D150_Def.aParamDef.
+FUNCTION_BLOCK FB_Dev_O5D150 EXTENDS FB_IolDevBase
+VAR_INPUT
+    abPdIn           : ARRAY[0..1] OF BYTE;    // PDin từ GVL_IO, big-endian
+    xAlignMode       : BOOL;                   // TRUE: đọc Align (69) mỗi tAlignPoll
+    // --- Lệnh (sườn lên) ---
+    xCmdReadAll      : BOOL;
+    xCmdReadIdent    : BOOL;
+    xCmdWriteSP1     : BOOL;
+    xCmdWriteLogic   : BOOL;
+    xCmdWriteLaser   : BOOL;
+    xCmdWriteDisplay : BOOL;
+    xCmdTestEvt1On   : BOOL;
+    xCmdTestEvt1Off  : BOOL;
+    xCmdTestEvt2On   : BOOL;
+    xCmdTestEvt2Off  : BOOL;
+    xCmdReadEvents   : BOOL;
+    // --- Giá trị đặt ---
+    uiSetSP1         : UINT;                   // cm 5..200
+    usiSetLogic      : USINT;                  // 0 NO / 1 NC
+    usiSetLaser      : USINT;                  // 0 Off / 1 On
+    usiSetDisplay    : USINT;                  // 0 Off / 1 On / 2 Rotated
+    tAlignPoll       : TIME := T#500MS;
+    tEvtPoll         : TIME := T#5S;           // chu kỳ đọc index 37 khi PD hợp lệ
+END_VAR
+VAR_OUTPUT
+    stPd                 : ST_O5D150_PdIn;
+    aVal                 : ARRAY[0..GVL_O5D150_Def.iPARAM_COUNT - 1] OF ST_IolParamVal;   // theo E_O5D150_Param
+    uiLimitMin_cm        : UINT;
+    uiLimitMax_cm        : UINT;
+    axEvtActive          : ARRAY[0..GVL_O5D150_Def.iEVT_COUNT - 1] OF BOOL;   // theo GVL_O5D150_Def.aEvtDef
+    xEvtErrorActive      : BOOL;               // có event loại ERROR đang active
+    uiEvtCount           : UINT;               // số event đang active (kể cả mã lạ)
+    wUnknownEvt          : WORD;               // mã event không có trong bảng (gần nhất)
+    xEvtListValid        : BOOL;               // danh sách event đọc được lần gần nhất
+    xEvtListNotSupported : BOOL;               // device trả 0x8011 cho index 37 -&gt; ngừng đọc chu kỳ
+END_VAR
+VAR
+    rtReadAll    : R_TRIG;
+    rtReadIdent  : R_TRIG;
+    rtWrSP1      : R_TRIG;
+    rtWrLogic    : R_TRIG;
+    rtWrLaser    : R_TRIG;
+    rtWrDisplay  : R_TRIG;
+    rtEvt1On     : R_TRIG;
+    rtEvt1Off    : R_TRIG;
+    rtEvt2On     : R_TRIG;
+    rtEvt2Off    : R_TRIG;
+    rtReadEvt    : R_TRIG;
+    tonAlign     : TON;
+    tonEvt       : TON;
+    usiPendSysCmd: USINT;                      // System Command chờ gửi, 0 = không
+    xPendEvtRead : BOOL;
+    abCmd        : ARRAY[0..0] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <outputVars>
+            <variable name="stPd">
+              <type>
+                <derived name="ST_O5D150_PdIn" />
+              </type>
+            </variable>
+            <variable name="aVal">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_O5D150_Def.iPARAM_COUNT - 1)" />
+                  <baseType>
+                    <derived name="ST_IolParamVal" />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> theo E_O5D150_Param</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiLimitMin_cm">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="uiLimitMax_cm">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="axEvtActive">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_O5D150_Def.iEVT_COUNT - 1)" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> theo GVL_O5D150_Def.aEvtDef</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEvtErrorActive">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> có event loại ERROR đang active</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiEvtCount">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> số event đang active (kể cả mã lạ)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="wUnknownEvt">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> mã event không có trong bảng (gần nhất)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEvtListValid">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> danh sách event đọc được lần gần nhất</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEvtListNotSupported">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> device trả 0x8011 cho index 37 -&gt; ngừng đọc chu kỳ</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Cảm biến khoảng cách laser ifm O5D150 (IODD vendor 310 / device 372, IO-Link 1.1, PDin 16 bit, không PDout).
+// 1) Cyclic: giải mã PDin + PQI.  2) Event: Test Event qua System Command, đọc danh sách event index 37.
+// 3) Acyclic: SP1, Logic, Limit, Align, Laser, Display... theo bảng GVL_O5D150_Def.aParamDef.
+FUNCTION_BLOCK FB_Dev_O5D150 EXTENDS FB_IolDevBase
+VAR_INPUT
+    abPdIn           : ARRAY[0..1] OF BYTE;    // PDin từ GVL_IO, big-endian
+    xAlignMode       : BOOL;                   // TRUE: đọc Align (69) mỗi tAlignPoll
+    // --- Lệnh (sườn lên) ---
+    xCmdReadAll      : BOOL;
+    xCmdReadIdent    : BOOL;
+    xCmdWriteSP1     : BOOL;
+    xCmdWriteLogic   : BOOL;
+    xCmdWriteLaser   : BOOL;
+    xCmdWriteDisplay : BOOL;
+    xCmdTestEvt1On   : BOOL;
+    xCmdTestEvt1Off  : BOOL;
+    xCmdTestEvt2On   : BOOL;
+    xCmdTestEvt2Off  : BOOL;
+    xCmdReadEvents   : BOOL;
+    // --- Giá trị đặt ---
+    uiSetSP1         : UINT;                   // cm 5..200
+    usiSetLogic      : USINT;                  // 0 NO / 1 NC
+    usiSetLaser      : USINT;                  // 0 Off / 1 On
+    usiSetDisplay    : USINT;                  // 0 Off / 1 On / 2 Rotated
+    tAlignPoll       : TIME := T#500MS;
+    tEvtPoll         : TIME := T#5S;           // chu kỳ đọc index 37 khi PD hợp lệ
+END_VAR
+VAR_OUTPUT
+    stPd                 : ST_O5D150_PdIn;
+    aVal                 : ARRAY[0..GVL_O5D150_Def.iPARAM_COUNT - 1] OF ST_IolParamVal;   // theo E_O5D150_Param
+    uiLimitMin_cm        : UINT;
+    uiLimitMax_cm        : UINT;
+    axEvtActive          : ARRAY[0..GVL_O5D150_Def.iEVT_COUNT - 1] OF BOOL;   // theo GVL_O5D150_Def.aEvtDef
+    xEvtErrorActive      : BOOL;               // có event loại ERROR đang active
+    uiEvtCount           : UINT;               // số event đang active (kể cả mã lạ)
+    wUnknownEvt          : WORD;               // mã event không có trong bảng (gần nhất)
+    xEvtListValid        : BOOL;               // danh sách event đọc được lần gần nhất
+    xEvtListNotSupported : BOOL;               // device trả 0x8011 cho index 37 -&gt; ngừng đọc chu kỳ
+END_VAR
+VAR
+    rtReadAll    : R_TRIG;
+    rtReadIdent  : R_TRIG;
+    rtWrSP1      : R_TRIG;
+    rtWrLogic    : R_TRIG;
+    rtWrLaser    : R_TRIG;
+    rtWrDisplay  : R_TRIG;
+    rtEvt1On     : R_TRIG;
+    rtEvt1Off    : R_TRIG;
+    rtEvt2On     : R_TRIG;
+    rtEvt2Off    : R_TRIG;
+    rtReadEvt    : R_TRIG;
+    tonAlign     : TON;
+    tonEvt       : TON;
+    usiPendSysCmd: USINT;                      // System Command chờ gửi, 0 = không
+    xPendEvtRead : BOOL;
+    abCmd        : ARRAY[0..0] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </outputVars>
+          <localVars>
+            <variable name="rtReadAll">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtReadIdent">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtWrSP1">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtWrLogic">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtWrLaser">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtWrDisplay">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtEvt1On">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtEvt1Off">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtEvt2On">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtEvt2Off">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtReadEvt">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="tonAlign">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="tonEvt">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="usiPendSysCmd">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> System Command chờ gửi, 0 = không</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xPendEvtRead">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="abCmd">
+              <type>
+                <array>
+                  <dimension lower="0" upper="0" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Cảm biến khoảng cách laser ifm O5D150 (IODD vendor 310 / device 372, IO-Link 1.1, PDin 16 bit, không PDout).
+// 1) Cyclic: giải mã PDin + PQI.  2) Event: Test Event qua System Command, đọc danh sách event index 37.
+// 3) Acyclic: SP1, Logic, Limit, Align, Laser, Display... theo bảng GVL_O5D150_Def.aParamDef.
+FUNCTION_BLOCK FB_Dev_O5D150 EXTENDS FB_IolDevBase
+VAR_INPUT
+    abPdIn           : ARRAY[0..1] OF BYTE;    // PDin từ GVL_IO, big-endian
+    xAlignMode       : BOOL;                   // TRUE: đọc Align (69) mỗi tAlignPoll
+    // --- Lệnh (sườn lên) ---
+    xCmdReadAll      : BOOL;
+    xCmdReadIdent    : BOOL;
+    xCmdWriteSP1     : BOOL;
+    xCmdWriteLogic   : BOOL;
+    xCmdWriteLaser   : BOOL;
+    xCmdWriteDisplay : BOOL;
+    xCmdTestEvt1On   : BOOL;
+    xCmdTestEvt1Off  : BOOL;
+    xCmdTestEvt2On   : BOOL;
+    xCmdTestEvt2Off  : BOOL;
+    xCmdReadEvents   : BOOL;
+    // --- Giá trị đặt ---
+    uiSetSP1         : UINT;                   // cm 5..200
+    usiSetLogic      : USINT;                  // 0 NO / 1 NC
+    usiSetLaser      : USINT;                  // 0 Off / 1 On
+    usiSetDisplay    : USINT;                  // 0 Off / 1 On / 2 Rotated
+    tAlignPoll       : TIME := T#500MS;
+    tEvtPoll         : TIME := T#5S;           // chu kỳ đọc index 37 khi PD hợp lệ
+END_VAR
+VAR_OUTPUT
+    stPd                 : ST_O5D150_PdIn;
+    aVal                 : ARRAY[0..GVL_O5D150_Def.iPARAM_COUNT - 1] OF ST_IolParamVal;   // theo E_O5D150_Param
+    uiLimitMin_cm        : UINT;
+    uiLimitMax_cm        : UINT;
+    axEvtActive          : ARRAY[0..GVL_O5D150_Def.iEVT_COUNT - 1] OF BOOL;   // theo GVL_O5D150_Def.aEvtDef
+    xEvtErrorActive      : BOOL;               // có event loại ERROR đang active
+    uiEvtCount           : UINT;               // số event đang active (kể cả mã lạ)
+    wUnknownEvt          : WORD;               // mã event không có trong bảng (gần nhất)
+    xEvtListValid        : BOOL;               // danh sách event đọc được lần gần nhất
+    xEvtListNotSupported : BOOL;               // device trả 0x8011 cho index 37 -&gt; ngừng đọc chu kỳ
+END_VAR
+VAR
+    rtReadAll    : R_TRIG;
+    rtReadIdent  : R_TRIG;
+    rtWrSP1      : R_TRIG;
+    rtWrLogic    : R_TRIG;
+    rtWrLaser    : R_TRIG;
+    rtWrDisplay  : R_TRIG;
+    rtEvt1On     : R_TRIG;
+    rtEvt1Off    : R_TRIG;
+    rtEvt2On     : R_TRIG;
+    rtEvt2Off    : R_TRIG;
+    rtReadEvt    : R_TRIG;
+    tonAlign     : TON;
+    tonEvt       : TON;
+    usiPendSysCmd: USINT;                      // System Command chờ gửi, 0 = không
+    xPendEvtRead : BOOL;
+    abCmd        : ARRAY[0..0] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_IolDevBase</Extends>
+              </Inheritance>
+            </data>
+          </addData>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cảm biến khoảng cách laser ifm O5D150 (IODD vendor 310 / device 372, IO-Link 1.1, PDin 16 bit, không PDout).
+ 1) Cyclic: giải mã PDin + PQI.  2) Event: Test Event qua System Command, đọc danh sách event index 37.
+ 3) Acyclic: SP1, Logic, Limit, Align, Laser, Display... theo bảng GVL_O5D150_Def.aParamDef.</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// Nền: PQI, trình tự ISDU, Ident (FB_IolDevBase)
+SUPER^();
+
+// ---------- 1. Process data cyclic ----------
+DecodePdIn();
+
+// ---------- 2. Lệnh tham số (ghi bị chặn trong RequestWrite nếu chưa bật Maintenance / ngoài dải) ----------
+rtReadAll(CLK := xCmdReadAll);
+IF rtReadAll.Q THEN
+    RequestReadAll();
+END_IF
+rtReadIdent(CLK := xCmdReadIdent);
+IF rtReadIdent.Q THEN
+    RequestReadIdent();
+END_IF
+rtWrSP1(CLK := xCmdWriteSP1);
+IF rtWrSP1.Q THEN
+    RequestWrite(iParam := E_O5D150_Param.SP1, diValue := UINT_TO_DINT(uiSetSP1));
+END_IF
+rtWrLogic(CLK := xCmdWriteLogic);
+IF rtWrLogic.Q THEN
+    RequestWrite(iParam := E_O5D150_Param.CFG_LOGIC, diValue := USINT_TO_DINT(usiSetLogic));
+END_IF
+rtWrLaser(CLK := xCmdWriteLaser);
+IF rtWrLaser.Q THEN
+    RequestWrite(iParam := E_O5D150_Param.LASER, diValue := USINT_TO_DINT(usiSetLaser));
+END_IF
+rtWrDisplay(CLK := xCmdWriteDisplay);
+IF rtWrDisplay.Q THEN
+    RequestWrite(iParam := E_O5D150_Param.DISPLAY, diValue := USINT_TO_DINT(usiSetDisplay));
+END_IF
+
+// ---------- 3. Align: đọc chu kỳ chậm chỉ khi đang căn chỉnh, tránh chiếm kênh ISDU ----------
+tonAlign(IN := xAlignMode AND xPdValid AND NOT tonAlign.Q, PT := tAlignPoll);
+IF tonAlign.Q THEN
+    RequestRead(E_O5D150_Param.ALIGN);
+END_IF
+
+// ---------- 4. Test Event qua System Command (index 2) ----------
+rtEvt1On(CLK := xCmdTestEvt1On);
+IF rtEvt1On.Q THEN
+    QueueSysCmd(GVL_O5D150_Def.usiSC_TEST_EVT1_ON);
+END_IF
+rtEvt1Off(CLK := xCmdTestEvt1Off);
+IF rtEvt1Off.Q THEN
+    QueueSysCmd(GVL_O5D150_Def.usiSC_TEST_EVT1_OFF);
+END_IF
+rtEvt2On(CLK := xCmdTestEvt2On);
+IF rtEvt2On.Q THEN
+    QueueSysCmd(GVL_O5D150_Def.usiSC_TEST_EVT2_ON);
+END_IF
+rtEvt2Off(CLK := xCmdTestEvt2Off);
+IF rtEvt2Off.Q THEN
+    QueueSysCmd(GVL_O5D150_Def.usiSC_TEST_EVT2_OFF);
+END_IF
+IF usiPendSysCmd &lt;&gt; 0 AND NOT xPendCustom THEN
+    abCmd[0] := usiPendSysCmd;
+    IF RequestCustom(eService := E_IolService.WRITE, uiIndex := GVL_O5D150_Def.uiIDX_SYS_CMD,
+                     usiSubindex := 0, pData := ADR(abCmd), uiLen := 1) THEN
+        usiPendSysCmd := 0;
+    ELSIF NOT xWriteEnable THEN
+        usiPendSysCmd := 0;                     // Maintenance bị tắt giữa chừng: bỏ lệnh
+    END_IF
+END_IF
+
+// ---------- 5. Danh sách event (index 37). Kênh chính thức là PROFINET diagnosis/alarm của AL1100 (TODO) ----------
+IF rtPdValid.Q THEN
+    xEvtListNotSupported := FALSE;              // device mới cắm vào: thử lại
+END_IF
+rtReadEvt(CLK := xCmdReadEvents);
+IF rtReadEvt.Q THEN
+    xEvtListNotSupported := FALSE;
+    xPendEvtRead := TRUE;
+END_IF
+tonEvt(IN := xPdValid AND NOT xEvtListNotSupported AND NOT tonEvt.Q, PT := tEvtPoll);
+IF tonEvt.Q THEN
+    xPendEvtRead := TRUE;
+END_IF
+IF xPendEvtRead AND NOT xPendCustom AND usiPendSysCmd = 0 THEN
+    IF RequestCustom(eService := E_IolService.READ, uiIndex := GVL_O5D150_Def.uiIDX_EVT_LIST,
+                     usiSubindex := 0, pData := 0, uiLen := 0) THEN
+        xPendEvtRead := FALSE;
+    END_IF
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="DecodePdIn" ObjectId="6a08a18c-6f99-45aa-8a50-6b92c270a386">
+              <interface>
+                <localVars>
+                  <variable name="wRaw">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                  <variable name="uiDist">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// PDin 16 bit big-endian: Distance 12 bit từ bit 4 [cm], OUT1 bit 0 (layout trong GVL_O5D150_Def.stPdLayout)
+METHOD PROTECTED DecodePdIn
+VAR
+    wRaw   : WORD;
+    uiDist : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> PDin 16 bit big-endian: Distance 12 bit từ bit 4 [cm], OUT1 bit 0 (layout trong GVL_O5D150_Def.stPdLayout)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">wRaw := SHL(BYTE_TO_WORD(abPdIn[0]), 8) OR BYTE_TO_WORD(abPdIn[1]);
+stPd.wRaw     := wRaw;
+stPd.xPdValid := xPdValid;
+IF xPdValid THEN
+    uiDist := WORD_TO_UINT(SHR(wRaw, GVL_O5D150_Def.stPdLayout.usiDistBitOffset) AND GVL_O5D150_Def.stPdLayout.wDistMask);
+    stPd.uiDistance_cm := uiDist;
+    stPd.rDistance_m   := UINT_TO_REAL(uiDist) * GVL_O5D150_Def.stPdLayout.rGradient;
+    stPd.xOut1         := (SHR(wRaw, GVL_O5D150_Def.stPdLayout.usiOut1Bit) AND WORD#1) &lt;&gt; 0;
+    stPd.xOutOfRange   := uiDist &lt; GVL_O5D150_Def.stPdLayout.uiDistMin OR uiDist &gt; GVL_O5D150_Def.stPdLayout.uiDistMax;
+ELSE
+    // PD không hợp lệ: khoảng cách giữ giá trị cũ để HMI không nhảy về 0, OUT1 về FALSE (fail-safe)
+    stPd.xOut1 := FALSE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// PDin 16 bit big-endian: Distance 12 bit từ bit 4 [cm], OUT1 bit 0 (layout trong GVL_O5D150_Def.stPdLayout)
+METHOD PROTECTED DecodePdIn
+VAR
+    wRaw   : WORD;
+    uiDist : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="QueueSysCmd" ObjectId="9c2e3108-4891-4c4b-8283-fae9e0d073fc">
+              <interface>
+                <inputVars>
+                  <variable name="usiCmd">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xếp 1 System Command chờ gửi; bị khoá khi chưa bật Maintenance
+METHOD PROTECTED QueueSysCmd
+VAR_INPUT
+    usiCmd : USINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Xếp 1 System Command chờ gửi; bị khoá khi chưa bật Maintenance</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT xWriteEnable THEN
+    SetLocalErr(E_IolErrSource.WRITE_LOCKED);
+ELSE
+    usiPendSysCmd := usiCmd;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xếp 1 System Command chờ gửi; bị khoá khi chưa bật Maintenance
+METHOD PROTECTED QueueSysCmd
+VAR_INPUT
+    usiCmd : USINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="DecodeEvents" ObjectId="224286f4-601f-4465-ad1e-9c51ca242528">
+              <interface>
+                <inputVars>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã Detailed Device Status (index 37): mỗi entry 3 byte = EventQualifier + EventCode (big-endian),
+// entry 0/0 = trống. Đánh dấu cờ theo bảng GVL_O5D150_Def.aEvtDef.
+METHOD PROTECTED DecodeEvents
+VAR_INPUT
+    uiLen : UINT;
+END_VAR
+VAR
+    k      : INT;
+    j      : INT;
+    wCode  : WORD;
+    xFound : BOOL;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="k">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="j">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="wCode">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                  <variable name="xFound">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã Detailed Device Status (index 37): mỗi entry 3 byte = EventQualifier + EventCode (big-endian),
+// entry 0/0 = trống. Đánh dấu cờ theo bảng GVL_O5D150_Def.aEvtDef.
+METHOD PROTECTED DecodeEvents
+VAR_INPUT
+    uiLen : UINT;
+END_VAR
+VAR
+    k      : INT;
+    j      : INT;
+    wCode  : WORD;
+    xFound : BOOL;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giải mã Detailed Device Status (index 37): mỗi entry 3 byte = EventQualifier + EventCode (big-endian),
+ entry 0/0 = trống. Đánh dấu cờ theo bảng GVL_O5D150_Def.aEvtDef.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FOR j := 0 TO GVL_O5D150_Def.iEVT_COUNT - 1 DO
+    axEvtActive[j] := FALSE;
+END_FOR
+uiEvtCount      := 0;
+xEvtErrorActive := FALSE;
+
+FOR k := 0 TO UINT_TO_INT(uiLen / 3) - 1 DO
+    wCode := UINT_TO_WORD(F_IolGetU16BE(ADR(abBuf), INT_TO_UINT(k * 3 + 1)));
+    IF abBuf[k * 3] &lt;&gt; 0 OR wCode &lt;&gt; 0 THEN
+        uiEvtCount := uiEvtCount + 1;
+        xFound := FALSE;
+        FOR j := 0 TO GVL_O5D150_Def.iEVT_COUNT - 1 DO
+            IF GVL_O5D150_Def.aEvtDef[j].wCode = wCode THEN
+                axEvtActive[j] := TRUE;
+                xFound := TRUE;
+                IF GVL_O5D150_Def.aEvtDef[j].eType = E_IolEvtType.ERROR THEN
+                    xEvtErrorActive := TRUE;
+                END_IF
+            END_IF
+        END_FOR
+        IF NOT xFound THEN
+            wUnknownEvt := wCode;
+        END_IF
+    END_IF
+END_FOR
+xEvtListValid := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã Detailed Device Status (index 37): mỗi entry 3 byte = EventQualifier + EventCode (big-endian),
+// entry 0/0 = trống. Đánh dấu cờ theo bảng GVL_O5D150_Def.aEvtDef.
+METHOD PROTECTED DecodeEvents
+VAR_INPUT
+    uiLen : UINT;
+END_VAR
+VAR
+    k      : INT;
+    j      : INT;
+    wCode  : WORD;
+    xFound : BOOL;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ParamCount" ObjectId="a7f0872b-b190-4d5c-a455-9e5c30ef007e">
+              <interface>
+                <returnType>
+                  <INT />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ParamCount := GVL_O5D150_Def.iPARAM_COUNT;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD ParamCount : INT
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetParamDef" ObjectId="3af6ead6-05c5-4319-88d2-32d3a5f3306f">
+              <interface>
+                <returnType>
+                  <derived name="ST_IolParamDef" />
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stEmpty">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF iParam &gt;= 0 AND iParam &lt; GVL_O5D150_Def.iPARAM_COUNT THEN
+    GetParamDef := GVL_O5D150_Def.aParamDef[iParam];
+ELSE
+    GetParamDef := stEmpty;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetValPtr" ObjectId="88df3bc2-8e8b-444a-a926-c8a1b19a4d72">
+              <interface>
+                <returnType>
+                  <pointer>
+                    <baseType>
+                      <derived name="ST_IolParamVal" />
+                    </baseType>
+                  </pointer>
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD GetValPtr : POINTER TO ST_IolParamVal
+VAR_INPUT
+    iParam : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF iParam &gt;= 0 AND iParam &lt; GVL_O5D150_Def.iPARAM_COUNT THEN
+    GetValPtr := ADR(aVal[iParam]);
+ELSE
+    GetValPtr := 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD GetValPtr : POINTER TO ST_IolParamVal
+VAR_INPUT
+    iParam : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnParamDone" ObjectId="08ea0c22-c77f-44f4-8d92-d40d3ff3e9cd">
+              <interface>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Limit (index 64) là record 4 byte: min UINT16 | max UINT16 -&gt; tách ra
+METHOD OnParamDone
+VAR_INPUT
+    iParam : INT;
+    xErr   : BOOL;
+END_VAR
+VAR
+    dwRaw : DWORD;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="dwRaw">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Limit (index 64) là record 4 byte: min UINT16 | max UINT16 -&gt; tách ra
+METHOD OnParamDone
+VAR_INPUT
+    iParam : INT;
+    xErr   : BOOL;
+END_VAR
+VAR
+    dwRaw : DWORD;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Limit (index 64) là record 4 byte: min UINT16 | max UINT16 -&gt; tách ra</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF iParam = E_O5D150_Param.LIMITS AND NOT xErr THEN
+    dwRaw := DINT_TO_DWORD(aVal[E_O5D150_Param.LIMITS].diRaw);
+    uiLimitMin_cm := DWORD_TO_UINT(SHR(dwRaw, 16));
+    uiLimitMax_cm := DWORD_TO_UINT(dwRaw AND 16#FFFF);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Limit (index 64) là record 4 byte: min UINT16 | max UINT16 -&gt; tách ra
+METHOD OnParamDone
+VAR_INPUT
+    iParam : INT;
+    xErr   : BOOL;
+END_VAR
+VAR
+    dwRaw : DWORD;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnCustomDone" ObjectId="95b814cb-8d3d-444b-ab06-e6c55b46991d">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="eService">
+                    <type>
+                      <derived name="E_IolService" />
+                    </type>
+                  </variable>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="uiDevErr">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kết quả ISDU tự do: index 37 (event list) và index 2 (System Command)
+METHOD OnCustomDone : BOOL
+VAR_INPUT
+    uiIndex  : UINT;
+    eService : E_IolService;
+    xErr     : BOOL;
+    uiDevErr : UINT;
+    uiLen    : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Kết quả ISDU tự do: index 37 (event list) và index 2 (System Command)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">OnCustomDone := FALSE;
+IF uiIndex = GVL_O5D150_Def.uiIDX_EVT_LIST AND eService = E_IolService.READ THEN
+    IF xErr THEN
+        xEvtListValid := FALSE;
+        IF uiDevErr = GVL_IolConst.uiERR_IDX_NA THEN
+            // IODD không khai báo index 37: ghi nhận 1 lần, ngừng đọc chu kỳ, không đẩy lỗi lên HMI
+            xEvtListNotSupported := TRUE;
+            OnCustomDone := TRUE;
+        END_IF
+    ELSE
+        DecodeEvents(uiLen);
+    END_IF
+ELSIF uiIndex = GVL_O5D150_Def.uiIDX_SYS_CMD AND NOT xErr THEN
+    xPendEvtRead := TRUE;          // cập nhật danh sách event ngay sau Test Event
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kết quả ISDU tự do: index 37 (event list) và index 2 (System Command)
+METHOD OnCustomDone : BOOL
+VAR_INPUT
+    uiIndex  : UINT;
+    eService : E_IolService;
+    xErr     : BOOL;
+    uiDevErr : UINT;
+    uiLen    : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Cảm biến khoảng cách laser ifm O5D150 (IODD vendor 310 / device 372, IO-Link 1.1, PDin 16 bit, không PDout).
+// 1) Cyclic: giải mã PDin + PQI.  2) Event: Test Event qua System Command, đọc danh sách event index 37.
+// 3) Acyclic: SP1, Logic, Limit, Align, Laser, Display... theo bảng GVL_O5D150_Def.aParamDef.
+FUNCTION_BLOCK FB_Dev_O5D150 EXTENDS FB_IolDevBase
+VAR_INPUT
+    abPdIn           : ARRAY[0..1] OF BYTE;    // PDin từ GVL_IO, big-endian
+    xAlignMode       : BOOL;                   // TRUE: đọc Align (69) mỗi tAlignPoll
+    // --- Lệnh (sườn lên) ---
+    xCmdReadAll      : BOOL;
+    xCmdReadIdent    : BOOL;
+    xCmdWriteSP1     : BOOL;
+    xCmdWriteLogic   : BOOL;
+    xCmdWriteLaser   : BOOL;
+    xCmdWriteDisplay : BOOL;
+    xCmdTestEvt1On   : BOOL;
+    xCmdTestEvt1Off  : BOOL;
+    xCmdTestEvt2On   : BOOL;
+    xCmdTestEvt2Off  : BOOL;
+    xCmdReadEvents   : BOOL;
+    // --- Giá trị đặt ---
+    uiSetSP1         : UINT;                   // cm 5..200
+    usiSetLogic      : USINT;                  // 0 NO / 1 NC
+    usiSetLaser      : USINT;                  // 0 Off / 1 On
+    usiSetDisplay    : USINT;                  // 0 Off / 1 On / 2 Rotated
+    tAlignPoll       : TIME := T#500MS;
+    tEvtPoll         : TIME := T#5S;           // chu kỳ đọc index 37 khi PD hợp lệ
+END_VAR
+VAR_OUTPUT
+    stPd                 : ST_O5D150_PdIn;
+    aVal                 : ARRAY[0..GVL_O5D150_Def.iPARAM_COUNT - 1] OF ST_IolParamVal;   // theo E_O5D150_Param
+    uiLimitMin_cm        : UINT;
+    uiLimitMax_cm        : UINT;
+    axEvtActive          : ARRAY[0..GVL_O5D150_Def.iEVT_COUNT - 1] OF BOOL;   // theo GVL_O5D150_Def.aEvtDef
+    xEvtErrorActive      : BOOL;               // có event loại ERROR đang active
+    uiEvtCount           : UINT;               // số event đang active (kể cả mã lạ)
+    wUnknownEvt          : WORD;               // mã event không có trong bảng (gần nhất)
+    xEvtListValid        : BOOL;               // danh sách event đọc được lần gần nhất
+    xEvtListNotSupported : BOOL;               // device trả 0x8011 cho index 37 -&gt; ngừng đọc chu kỳ
+END_VAR
+VAR
+    rtReadAll    : R_TRIG;
+    rtReadIdent  : R_TRIG;
+    rtWrSP1      : R_TRIG;
+    rtWrLogic    : R_TRIG;
+    rtWrLaser    : R_TRIG;
+    rtWrDisplay  : R_TRIG;
+    rtEvt1On     : R_TRIG;
+    rtEvt1Off    : R_TRIG;
+    rtEvt2On     : R_TRIG;
+    rtEvt2Off    : R_TRIG;
+    rtReadEvt    : R_TRIG;
+    tonAlign     : TON;
+    tonEvt       : TON;
+    usiPendSysCmd: USINT;                      // System Command chờ gửi, 0 = không
+    xPendEvtRead : BOOL;
+    abCmd        : ARRAY[0..0] OF BYTE;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>fc5c095c-c872-41a4-8a97-3a3a86572403</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="O5D150">
+            <Object Name="FB_Dev_O5D150" ObjectId="fc5c095c-c872-41a4-8a97-3a3a86572403">
+              <Object Name="DecodePdIn" ObjectId="6a08a18c-6f99-45aa-8a50-6b92c270a386" />
+              <Object Name="QueueSysCmd" ObjectId="9c2e3108-4891-4c4b-8283-fae9e0d073fc" />
+              <Object Name="DecodeEvents" ObjectId="224286f4-601f-4465-ad1e-9c51ca242528" />
+              <Object Name="ParamCount" ObjectId="a7f0872b-b190-4d5c-a455-9e5c30ef007e" />
+              <Object Name="GetParamDef" ObjectId="3af6ead6-05c5-4319-88d2-32d3a5f3306f" />
+              <Object Name="GetValPtr" ObjectId="88df3bc2-8e8b-444a-a926-c8a1b19a4d72" />
+              <Object Name="OnParamDone" ObjectId="08ea0c22-c77f-44f4-8d92-d40d3ff3e9cd" />
+              <Object Name="OnCustomDone" ObjectId="95b814cb-8d3d-444b-ab06-e6c55b46991d" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

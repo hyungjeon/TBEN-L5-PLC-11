@@ -1,0 +1,2002 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:24.1307564" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_MockRecordAccess" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="tDelayWr">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#30ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> thời gian giả lập WRREC</xhtml>
+              </documentation>
+            </variable>
+            <variable name="tDelayRd">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#30ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> thời gian giả lập RDREC</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiDevPort">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="GVL_IolConst.usiPORT_O5D150" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> port có O5D150 giả lập</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xDevPresent">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FALSE -&gt; master trả lỗi truyền thông 0x8004</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSimAlign">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="75" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> giá trị Align (index 69) trả về [%]</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xInjPnioErr">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> WRREC trả STATUS DE80B000</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiInjBusyCount">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> số lần RDREC trả "bận" (B5) cho mỗi request</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiInjDevErr">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> &lt;&gt; 0: mọi request trả lỗi device này (vd 16#8023)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xInjNoResponse">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> không bao giờ xong -&gt; test timeout</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xInjBadFrame">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> phản hồi byte 0 sai -&gt; lỗi FRAME</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xIdx37NotSupported">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 37 trả 0x8011 như IODD (không khai báo)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="awInjEvent">
+              <type>
+                <array>
+                  <dimension lower="0" upper="3" />
+                  <baseType>
+                    <WORD />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> thêm event bất kỳ vào danh sách index 37 (0 = trống)</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giả lập AL1100 + O5D150 cho CODESYS Simulation: nhận khung IOL_CALL qua Write, trả phản hồi qua Read
+// theo layout record CAP 0xB400 (plan mục 4.2). Dữ liệu O5D150 lấy theo IODD; có cờ chèn lỗi để test.
+FUNCTION_BLOCK FB_MockRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    tDelayWr           : TIME  := T#30MS;     // thời gian giả lập WRREC
+    tDelayRd           : TIME  := T#30MS;     // thời gian giả lập RDREC
+    usiDevPort         : USINT := GVL_IolConst.usiPORT_O5D150;   // port có O5D150 giả lập
+    xDevPresent        : BOOL  := TRUE;       // FALSE -&gt; master trả lỗi truyền thông 0x8004
+    usiSimAlign        : USINT := 75;         // giá trị Align (index 69) trả về [%]
+    // --- Chèn lỗi ---
+    xInjPnioErr        : BOOL;                // WRREC trả STATUS DE80B000
+    usiInjBusyCount    : USINT;               // số lần RDREC trả "bận" (B5) cho mỗi request
+    uiInjDevErr        : UINT;                // &lt;&gt; 0: mọi request trả lỗi device này (vd 16#8023)
+    xInjNoResponse     : BOOL;                // không bao giờ xong -&gt; test timeout
+    xInjBadFrame       : BOOL;                // phản hồi byte 0 sai -&gt; lỗi FRAME
+    xIdx37NotSupported : BOOL;                // index 37 trả 0x8011 như IODD (không khai báo)
+    awInjEvent         : ARRAY[0..3] OF WORD; // thêm event bất kỳ vào danh sách index 37 (0 = trống)
+END_VAR
+VAR_OUTPUT
+    udiWrCount    : UDINT;
+    udiRdCount    : UDINT;
+    usiLastSysCmd : USINT;                    // System Command gần nhất nhận được
+    xEvt1Active   : BOOL;                     // Test Event 0x8DFE đang active
+    xEvt2Active   : BOOL;                     // Test Event 0x8DFF đang active
+END_VAR
+VAR
+    xInit       : BOOL;
+    aStore      : ARRAY[0..19] OF ST_MockParam;
+    iStoreCount : INT;
+    tonWr       : TON;
+    tonRd       : TON;
+    xWrActive   : BOOL;
+    xWrFinished : BOOL;
+    xWrFailed   : BOOL;
+    dwWrStat    : DWORD;
+    xRdActive   : BOOL;
+    xRdFinished : BOOL;
+    xRdFailed   : BOOL;
+    dwRdStat    : DWORD;
+    iRdLenOut   : INT;
+    abReq       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiReqLen    : UINT;
+    abResp      : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiRespLen   : UINT;
+    xRespReady  : BOOL;
+    usiBusyLeft : USINT;
+    abTmp       : ARRAY[0..63] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <outputVars>
+            <variable name="udiWrCount">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="udiRdCount">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="usiLastSysCmd">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> System Command gần nhất nhận được</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEvt1Active">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFE đang active</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEvt2Active">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFF đang active</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giả lập AL1100 + O5D150 cho CODESYS Simulation: nhận khung IOL_CALL qua Write, trả phản hồi qua Read
+// theo layout record CAP 0xB400 (plan mục 4.2). Dữ liệu O5D150 lấy theo IODD; có cờ chèn lỗi để test.
+FUNCTION_BLOCK FB_MockRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    tDelayWr           : TIME  := T#30MS;     // thời gian giả lập WRREC
+    tDelayRd           : TIME  := T#30MS;     // thời gian giả lập RDREC
+    usiDevPort         : USINT := GVL_IolConst.usiPORT_O5D150;   // port có O5D150 giả lập
+    xDevPresent        : BOOL  := TRUE;       // FALSE -&gt; master trả lỗi truyền thông 0x8004
+    usiSimAlign        : USINT := 75;         // giá trị Align (index 69) trả về [%]
+    // --- Chèn lỗi ---
+    xInjPnioErr        : BOOL;                // WRREC trả STATUS DE80B000
+    usiInjBusyCount    : USINT;               // số lần RDREC trả "bận" (B5) cho mỗi request
+    uiInjDevErr        : UINT;                // &lt;&gt; 0: mọi request trả lỗi device này (vd 16#8023)
+    xInjNoResponse     : BOOL;                // không bao giờ xong -&gt; test timeout
+    xInjBadFrame       : BOOL;                // phản hồi byte 0 sai -&gt; lỗi FRAME
+    xIdx37NotSupported : BOOL;                // index 37 trả 0x8011 như IODD (không khai báo)
+    awInjEvent         : ARRAY[0..3] OF WORD; // thêm event bất kỳ vào danh sách index 37 (0 = trống)
+END_VAR
+VAR_OUTPUT
+    udiWrCount    : UDINT;
+    udiRdCount    : UDINT;
+    usiLastSysCmd : USINT;                    // System Command gần nhất nhận được
+    xEvt1Active   : BOOL;                     // Test Event 0x8DFE đang active
+    xEvt2Active   : BOOL;                     // Test Event 0x8DFF đang active
+END_VAR
+VAR
+    xInit       : BOOL;
+    aStore      : ARRAY[0..19] OF ST_MockParam;
+    iStoreCount : INT;
+    tonWr       : TON;
+    tonRd       : TON;
+    xWrActive   : BOOL;
+    xWrFinished : BOOL;
+    xWrFailed   : BOOL;
+    dwWrStat    : DWORD;
+    xRdActive   : BOOL;
+    xRdFinished : BOOL;
+    xRdFailed   : BOOL;
+    dwRdStat    : DWORD;
+    iRdLenOut   : INT;
+    abReq       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiReqLen    : UINT;
+    abResp      : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiRespLen   : UINT;
+    xRespReady  : BOOL;
+    usiBusyLeft : USINT;
+    abTmp       : ARRAY[0..63] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </outputVars>
+          <localVars>
+            <variable name="xInit">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="aStore">
+              <type>
+                <array>
+                  <dimension lower="0" upper="19" />
+                  <baseType>
+                    <derived name="ST_MockParam" />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="iStoreCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="tonWr">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="tonRd">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="xWrActive">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xWrFinished">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xWrFailed">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="dwWrStat">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="xRdActive">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xRdFinished">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xRdFailed">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="dwRdStat">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="iRdLenOut">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="abReq">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.uiMAX_REC - 1)" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="uiReqLen">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="abResp">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.uiMAX_REC - 1)" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="uiRespLen">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="xRespReady">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="usiBusyLeft">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="abTmp">
+              <type>
+                <array>
+                  <dimension lower="0" upper="63" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giả lập AL1100 + O5D150 cho CODESYS Simulation: nhận khung IOL_CALL qua Write, trả phản hồi qua Read
+// theo layout record CAP 0xB400 (plan mục 4.2). Dữ liệu O5D150 lấy theo IODD; có cờ chèn lỗi để test.
+FUNCTION_BLOCK FB_MockRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    tDelayWr           : TIME  := T#30MS;     // thời gian giả lập WRREC
+    tDelayRd           : TIME  := T#30MS;     // thời gian giả lập RDREC
+    usiDevPort         : USINT := GVL_IolConst.usiPORT_O5D150;   // port có O5D150 giả lập
+    xDevPresent        : BOOL  := TRUE;       // FALSE -&gt; master trả lỗi truyền thông 0x8004
+    usiSimAlign        : USINT := 75;         // giá trị Align (index 69) trả về [%]
+    // --- Chèn lỗi ---
+    xInjPnioErr        : BOOL;                // WRREC trả STATUS DE80B000
+    usiInjBusyCount    : USINT;               // số lần RDREC trả "bận" (B5) cho mỗi request
+    uiInjDevErr        : UINT;                // &lt;&gt; 0: mọi request trả lỗi device này (vd 16#8023)
+    xInjNoResponse     : BOOL;                // không bao giờ xong -&gt; test timeout
+    xInjBadFrame       : BOOL;                // phản hồi byte 0 sai -&gt; lỗi FRAME
+    xIdx37NotSupported : BOOL;                // index 37 trả 0x8011 như IODD (không khai báo)
+    awInjEvent         : ARRAY[0..3] OF WORD; // thêm event bất kỳ vào danh sách index 37 (0 = trống)
+END_VAR
+VAR_OUTPUT
+    udiWrCount    : UDINT;
+    udiRdCount    : UDINT;
+    usiLastSysCmd : USINT;                    // System Command gần nhất nhận được
+    xEvt1Active   : BOOL;                     // Test Event 0x8DFE đang active
+    xEvt2Active   : BOOL;                     // Test Event 0x8DFF đang active
+END_VAR
+VAR
+    xInit       : BOOL;
+    aStore      : ARRAY[0..19] OF ST_MockParam;
+    iStoreCount : INT;
+    tonWr       : TON;
+    tonRd       : TON;
+    xWrActive   : BOOL;
+    xWrFinished : BOOL;
+    xWrFailed   : BOOL;
+    dwWrStat    : DWORD;
+    xRdActive   : BOOL;
+    xRdFinished : BOOL;
+    xRdFailed   : BOOL;
+    dwRdStat    : DWORD;
+    iRdLenOut   : INT;
+    abReq       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiReqLen    : UINT;
+    abResp      : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiRespLen   : UINT;
+    xRespReady  : BOOL;
+    usiBusyLeft : USINT;
+    abTmp       : ARRAY[0..63] OF BYTE;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Implements>ITF_IolRecordAccess</Implements>
+              </Inheritance>
+            </data>
+          </addData>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giả lập AL1100 + O5D150 cho CODESYS Simulation: nhận khung IOL_CALL qua Write, trả phản hồi qua Read
+ theo layout record CAP 0xB400 (plan mục 4.2). Dữ liệu O5D150 lấy theo IODD; có cờ chèn lỗi để test.</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// Không có xử lý chu kỳ: Write/Read do FB_IolMaster gọi mỗi chu kỳ.
+IF NOT xInit THEN
+    InitStore();
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Write" ObjectId="beb33db4-a694-4056-b6c0-5a1eed854045">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="xReq">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwId">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="iLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <outputVars>
+                  <variable name="xDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xBusy">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xError">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwStatus">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </outputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT xInit THEN
+    InitStore();
+END_IF
+
+IF NOT xReq THEN
+    // REQ hạ: sẵn sàng cho request mới
+    xWrActive   := FALSE;
+    xWrFinished := FALSE;
+    xWrFailed   := FALSE;
+    tonWr(IN := FALSE);
+ELSIF NOT xWrActive AND NOT xWrFinished THEN
+    // sườn lên REQ: chụp khung request
+    uiReqLen := INT_TO_UINT(LIMIT(0, iLen, UINT_TO_INT(GVL_IolConst.uiMAX_REC)));
+    IF pData = 0 THEN
+        uiReqLen := 0;
+    END_IF
+    FOR i := 0 TO UINT_TO_INT(uiReqLen) - 1 DO
+        abReq[i] := pData[i];
+    END_FOR
+    xWrActive := TRUE;
+END_IF
+
+IF xWrActive THEN
+    tonWr(IN := TRUE, PT := tDelayWr);
+    IF tonWr.Q AND NOT xInjNoResponse THEN
+        tonWr(IN := FALSE);
+        xWrActive   := FALSE;
+        xWrFinished := TRUE;
+        udiWrCount  := udiWrCount + 1;
+        IF xInjPnioErr OR iIndex &lt;&gt; UINT_TO_INT(GVL_IolConst.uiCAP_INDEX) THEN
+            xWrFailed := TRUE;
+            dwWrStat  := 16#DE80B000;          // invalid index
+        ELSE
+            xWrFailed := FALSE;
+            dwWrStat  := 0;
+            ProcessRequest();
+        END_IF
+    END_IF
+END_IF
+
+xBusy  := xWrActive;
+xDone  := xWrFinished AND NOT xWrFailed;
+xError := xWrFinished AND xWrFailed;
+IF xError THEN
+    dwStatus := dwWrStat;
+ELSE
+    dwStatus := 0;
+END_IF
+Write := xWrFinished;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Read" ObjectId="802e85b1-b49a-4350-afd1-48ae5849bb69">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="xReq">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwId">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="iMLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+VAR
+    i : INT;
+    n : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <outputVars>
+                  <variable name="xValid">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xBusy">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xError">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwStatus">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+VAR
+    i : INT;
+    n : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </outputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="n">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+VAR
+    i : INT;
+    n : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT xInit THEN
+    InitStore();
+END_IF
+
+IF NOT xReq THEN
+    xRdActive   := FALSE;
+    xRdFinished := FALSE;
+    xRdFailed   := FALSE;
+    tonRd(IN := FALSE);
+ELSIF NOT xRdActive AND NOT xRdFinished THEN
+    xRdActive := TRUE;
+END_IF
+
+IF xRdActive THEN
+    tonRd(IN := TRUE, PT := tDelayRd);
+    IF tonRd.Q AND NOT xInjNoResponse THEN
+        tonRd(IN := FALSE);
+        xRdActive   := FALSE;
+        xRdFinished := TRUE;
+        udiRdCount  := udiRdCount + 1;
+        iRdLenOut   := 0;
+        IF iIndex &lt;&gt; UINT_TO_INT(GVL_IolConst.uiCAP_INDEX) THEN
+            xRdFailed := TRUE;
+            dwRdStat  := 16#DE80B000;          // invalid index
+        ELSIF usiBusyLeft &gt; 0 OR NOT xRespReady THEN
+            // master chưa xử lý xong ISDU (hoặc chưa có request) -&gt; state conflict, client retry
+            IF usiBusyLeft &gt; 0 THEN
+                usiBusyLeft := usiBusyLeft - 1;
+            END_IF
+            xRdFailed := TRUE;
+            dwRdStat  := 16#DE80B500;
+        ELSE
+            n := MIN(UINT_TO_INT(uiRespLen), iMLen);
+            IF pData = 0 THEN
+                n := 0;
+            END_IF
+            FOR i := 0 TO n - 1 DO
+                pData[i] := abResp[i];
+            END_FOR
+            iRdLenOut  := n;
+            xRespReady := FALSE;               // phản hồi chỉ đọc được 1 lần
+            xRdFailed  := FALSE;
+            dwRdStat   := 0;
+        END_IF
+    END_IF
+END_IF
+
+xBusy  := xRdActive;
+xValid := xRdFinished AND NOT xRdFailed;
+xError := xRdFinished AND xRdFailed;
+IF xError THEN
+    dwStatus := dwRdStat;
+ELSE
+    dwStatus := 0;
+END_IF
+IF xValid THEN
+    iLen := iRdLenOut;
+ELSE
+    iLen := 0;
+END_IF
+Read := xRdFinished;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+VAR
+    i : INT;
+    n : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitStore" ObjectId="fb9e783a-f8ac-410b-90cb-bf1bb0058c28">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Nạp bảng dữ liệu O5D150 mặc định (cũng dùng cho System Command 130 factory reset)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">iStoreCount := 0;
+// --- Nhận dạng chuẩn 16..24 ---
+AddStr(16,  E_IolAccess.RO, 'ifm electronic gmbh');
+AddStr(17,  E_IolAccess.RO, 'www.ifm.com');
+AddStr(18,  E_IolAccess.RO, 'O5D150');
+AddStr(19,  E_IolAccess.RO, 'O5D150');
+AddStr(20,  E_IolAccess.RO, 'Laser distance sensor (SIM)');
+AddStr(21,  E_IolAccess.RO, 'SIM0001');
+AddStr(22,  E_IolAccess.RO, 'AB');
+AddStr(23,  E_IolAccess.RO, 'SIM 1.0');
+AddStr(24,  E_IolAccess.RW, '***');
+// --- Tham số theo IODD (giá trị big-endian) ---
+AddRaw(60,  E_IolAccess.RW, 4, 16#00640000);   // SP1 = 100 cm, SP2 = 0 (not used)
+AddRaw(61,  E_IolAccess.RW, 4, 16#00010000);   // Logic = 0 NO, Mode = 1, Hyst = 0
+AddRaw(64,  E_IolAccess.RO, 4, 16#000500C8);   // Limit min 5 cm, max 200 cm
+AddRaw(69,  E_IolAccess.RO, 1, 75);            // Align %
+AddRaw(74,  E_IolAccess.RW, 2, 0);             // dFO
+AddRaw(76,  E_IolAccess.RW, 2, 0);             // dS
+AddRaw(78,  E_IolAccess.RW, 2, 0);             // dr
+AddRaw(80,  E_IolAccess.RW, 1, 1);             // Laser On
+AddRaw(96,  E_IolAccess.RW, 1, 1);             // Display On
+AddRaw(100, E_IolAccess.RW, 1, 1);             // KeyLock Unlocked
+xInit := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Nạp bảng dữ liệu O5D150 mặc định (cũng dùng cho System Command 130 factory reset)
+METHOD PRIVATE InitStore
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="AddRaw" ObjectId="1ea2e622-2aee-4abf-99a6-d189a216bf72">
+              <interface>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="eAccess">
+                    <type>
+                      <derived name="E_IolAccess" />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1, 2 hoặc 4</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="dwVal">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thêm 1 index số (1, 2 hoặc 4 byte, big-endian) vào bảng giả lập
+METHOD PRIVATE AddRaw
+VAR_INPUT
+    uiIndex : UINT;
+    eAccess : E_IolAccess;
+    uiLen   : UINT;          // 1, 2 hoặc 4
+    dwVal   : DWORD;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Thêm 1 index số (1, 2 hoặc 4 byte, big-endian) vào bảng giả lập</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF iStoreCount &gt; 19 THEN
+    RETURN;
+END_IF
+aStore[iStoreCount].uiIndex := uiIndex;
+aStore[iStoreCount].eAccess := eAccess;
+aStore[iStoreCount].uiLen   := uiLen;
+CASE uiLen OF
+    1: aStore[iStoreCount].abData[0] := DWORD_TO_BYTE(dwVal);
+    2: F_IolSetU16BE(ADR(aStore[iStoreCount].abData), 0, DWORD_TO_UINT(dwVal));
+ELSE
+    aStore[iStoreCount].uiLen := 4;
+    F_IolSetU32BE(ADR(aStore[iStoreCount].abData), 0, dwVal);
+END_CASE
+iStoreCount := iStoreCount + 1;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thêm 1 index số (1, 2 hoặc 4 byte, big-endian) vào bảng giả lập
+METHOD PRIVATE AddRaw
+VAR_INPUT
+    uiIndex : UINT;
+    eAccess : E_IolAccess;
+    uiLen   : UINT;          // 1, 2 hoặc 4
+    dwVal   : DWORD;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="AddStr" ObjectId="856d44a7-a2a1-4d89-a68a-bce365873e04">
+              <interface>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="eAccess">
+                    <type>
+                      <derived name="E_IolAccess" />
+                    </type>
+                  </variable>
+                  <variable name="sVal">
+                    <type>
+                      <string length="63" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thêm 1 index chuỗi (StringT, không ký tự kết thúc) vào bảng giả lập
+METHOD PRIVATE AddStr
+VAR_INPUT
+    uiIndex : UINT;
+    eAccess : E_IolAccess;
+    sVal    : STRING(63);
+END_VAR
+VAR
+    pSrc : POINTER TO BYTE;
+    n    : INT;
+    i    : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="pSrc">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="n">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thêm 1 index chuỗi (StringT, không ký tự kết thúc) vào bảng giả lập
+METHOD PRIVATE AddStr
+VAR_INPUT
+    uiIndex : UINT;
+    eAccess : E_IolAccess;
+    sVal    : STRING(63);
+END_VAR
+VAR
+    pSrc : POINTER TO BYTE;
+    n    : INT;
+    i    : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Thêm 1 index chuỗi (StringT, không ký tự kết thúc) vào bảng giả lập</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF iStoreCount &gt; 19 THEN
+    RETURN;
+END_IF
+pSrc := ADR(sVal);
+n := LEN(sVal);
+aStore[iStoreCount].uiIndex := uiIndex;
+aStore[iStoreCount].eAccess := eAccess;
+aStore[iStoreCount].uiLen   := INT_TO_UINT(n);
+FOR i := 0 TO n - 1 DO
+    aStore[iStoreCount].abData[i] := pSrc[i];
+END_FOR
+iStoreCount := iStoreCount + 1;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thêm 1 index chuỗi (StringT, không ký tự kết thúc) vào bảng giả lập
+METHOD PRIVATE AddStr
+VAR_INPUT
+    uiIndex : UINT;
+    eAccess : E_IolAccess;
+    sVal    : STRING(63);
+END_VAR
+VAR
+    pSrc : POINTER TO BYTE;
+    n    : INT;
+    i    : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FindStore" ObjectId="f3f9082f-4252-4299-8556-3afbdbb462d4">
+              <interface>
+                <returnType>
+                  <INT />
+                </returnType>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí index trong bảng, -1 nếu không có
+METHOD PRIVATE FindStore : INT
+VAR_INPUT
+    uiIndex : UINT;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí index trong bảng, -1 nếu không có
+METHOD PRIVATE FindStore : INT
+VAR_INPUT
+    uiIndex : UINT;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Vị trí index trong bảng, -1 nếu không có</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FindStore := -1;
+FOR i := 0 TO iStoreCount - 1 DO
+    IF aStore[i].uiIndex = uiIndex THEN
+        FindStore := i;
+        RETURN;
+    END_IF
+END_FOR
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí index trong bảng, -1 nếu không có
+METHOD PRIVATE FindStore : INT
+VAR_INPUT
+    uiIndex : UINT;
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SubRange" ObjectId="cf89effd-aa92-44d7-aa15-d52ac87f15e1">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="iStore">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="usiSub">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí byte của subindex trong record (theo IODD O5D150); FALSE = subindex không tồn tại
+METHOD PRIVATE SubRange : BOOL
+VAR_INPUT
+    iStore  : INT;
+    usiSub  : USINT;
+END_VAR
+VAR_OUTPUT
+    uiOff : UINT;
+    uiLen : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <outputVars>
+                  <variable name="uiOff">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí byte của subindex trong record (theo IODD O5D150); FALSE = subindex không tồn tại
+METHOD PRIVATE SubRange : BOOL
+VAR_INPUT
+    iStore  : INT;
+    usiSub  : USINT;
+END_VAR
+VAR_OUTPUT
+    uiOff : UINT;
+    uiLen : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </outputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Vị trí byte của subindex trong record (theo IODD O5D150); FALSE = subindex không tồn tại</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SubRange := TRUE;
+uiOff := 0;
+uiLen := 0;
+IF usiSub = 0 THEN
+    uiLen := aStore[iStore].uiLen;
+    RETURN;
+END_IF
+CASE aStore[iStore].uiIndex OF
+    60:                                   // SP: sub1 SP1, sub2 SP2
+        CASE usiSub OF
+            1: uiOff := 0; uiLen := 2;
+            2: uiOff := 2; uiLen := 2;
+        ELSE
+            SubRange := FALSE;
+        END_CASE
+    61:                                   // Config: sub1 Logic, sub2 Mode, sub3 Hyst
+        CASE usiSub OF
+            1: uiOff := 0; uiLen := 1;
+            2: uiOff := 1; uiLen := 1;
+            3: uiOff := 2; uiLen := 2;
+        ELSE
+            SubRange := FALSE;
+        END_CASE
+    64:                                   // Limit: sub1 min, sub2 max
+        CASE usiSub OF
+            1: uiOff := 0; uiLen := 2;
+            2: uiOff := 2; uiLen := 2;
+        ELSE
+            SubRange := FALSE;
+        END_CASE
+ELSE
+    SubRange := FALSE;
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Vị trí byte của subindex trong record (theo IODD O5D150); FALSE = subindex không tồn tại
+METHOD PRIVATE SubRange : BOOL
+VAR_INPUT
+    iStore  : INT;
+    usiSub  : USINT;
+END_VAR
+VAR_OUTPUT
+    uiOff : UINT;
+    uiLen : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CheckImage" ObjectId="f40f0461-7eee-40ea-ad2c-6124e5e42712">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="pImg">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kiểm dải giá trị của cả record sau khi ghi (theo IODD); FALSE -&gt; device trả 0x8030
+METHOD PRIVATE CheckImage : BOOL
+VAR_INPUT
+    uiIndex : UINT;
+    pImg    : POINTER TO BYTE;
+END_VAR
+VAR
+    uiV1 : UINT;
+    uiV2 : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="uiV1">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiV2">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kiểm dải giá trị của cả record sau khi ghi (theo IODD); FALSE -&gt; device trả 0x8030
+METHOD PRIVATE CheckImage : BOOL
+VAR_INPUT
+    uiIndex : UINT;
+    pImg    : POINTER TO BYTE;
+END_VAR
+VAR
+    uiV1 : UINT;
+    uiV2 : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Kiểm dải giá trị của cả record sau khi ghi (theo IODD); FALSE -&gt; device trả 0x8030</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CheckImage := TRUE;
+CASE uiIndex OF
+    60:                                         // SP1 5..200 cm, SP2 = 0 (not used)
+        uiV1 := F_IolGetU16BE(pImg, 0);
+        uiV2 := F_IolGetU16BE(pImg, 2);
+        CheckImage := (uiV1 &gt;= 5) AND (uiV1 &lt;= 200) AND (uiV2 = 0);
+    61:                                         // Logic 0..1, Mode = 1, Hyst = 0
+        CheckImage := (pImg[0] &lt;= 1) AND (pImg[1] = 1) AND (F_IolGetU16BE(pImg, 2) = 0);
+    74, 76, 78:                                 // dFO / dS / dr 0..2000
+        CheckImage := F_IolGetU16BE(pImg, 0) &lt;= 2000;
+    80, 100:                                    // Laser, KeyLock 0..1
+        CheckImage := pImg[0] &lt;= 1;
+    96:                                         // Display 0..2
+        CheckImage := pImg[0] &lt;= 2;
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kiểm dải giá trị của cả record sau khi ghi (theo IODD); FALSE -&gt; device trả 0x8030
+METHOD PRIVATE CheckImage : BOOL
+VAR_INPUT
+    uiIndex : UINT;
+    pImg    : POINTER TO BYTE;
+END_VAR
+VAR
+    uiV1 : UINT;
+    uiV2 : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RespOk" ObjectId="404d7edd-cae2-455b-9cae-67b80fb454e6">
+              <interface>
+                <inputVars>
+                  <variable name="uiDataLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hoàn tất phản hồi OK: header đã echo trong abResp[0..7], dữ liệu đọc ở abResp[8..]
+METHOD PRIVATE RespOk
+VAR_INPUT
+    uiDataLen : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Hoàn tất phản hồi OK: header đã echo trong abResp[0..7], dữ liệu đọc ở abResp[8..]</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">uiRespLen := GVL_IolConst.uiHDR_LEN + uiDataLen;
+IF xInjBadFrame THEN
+    abResp[0] := 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hoàn tất phản hồi OK: header đã echo trong abResp[0..7], dữ liệu đọc ở abResp[8..]
+METHOD PRIVATE RespOk
+VAR_INPUT
+    uiDataLen : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RespErr" ObjectId="1347eda0-7adc-42a1-a4d3-380a528feda5">
+              <interface>
+                <inputVars>
+                  <variable name="uiMasterErr">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiDevErr">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Phản hồi lỗi: Control = 0x80, byte 5..6 IOL_M_ErrorCode, byte 7..8 IOL_D_ErrorCode (layout giả định plan 4.2)
+METHOD PRIVATE RespErr
+VAR_INPUT
+    uiMasterErr : UINT;
+    uiDevErr    : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Phản hồi lỗi: Control = 0x80, byte 5..6 IOL_M_ErrorCode, byte 7..8 IOL_D_ErrorCode (layout giả định plan 4.2)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">abResp[4] := GVL_IolConst.usiCTRL_ERROR;
+F_IolSetU16BE(ADR(abResp), 5, uiMasterErr);
+F_IolSetU16BE(ADR(abResp), 7, uiDevErr);
+uiRespLen := 9;
+IF xInjBadFrame THEN
+    abResp[0] := 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Phản hồi lỗi: Control = 0x80, byte 5..6 IOL_M_ErrorCode, byte 7..8 IOL_D_ErrorCode (layout giả định plan 4.2)
+METHOD PRIVATE RespErr
+VAR_INPUT
+    uiMasterErr : UINT;
+    uiDevErr    : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessRequest" ObjectId="cc846871-bc82-4b54-91bf-8f47bc7d5bf1">
+              <interface>
+                <localVars>
+                  <variable name="usiPort">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="bCtrl">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="uiIdx">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="usiSub">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="uiDataLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="iS">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="uiOff">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiSubLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="n">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="awList">
+                    <type>
+                      <array>
+                        <dimension lower="0" upper="5" />
+                        <baseType>
+                          <WORD />
+                        </baseType>
+                      </array>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> event đang active để trả ở index 37</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="abQual">
+                    <type>
+                      <array>
+                        <dimension lower="0" upper="5" />
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </array>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xử lý 1 khung IOL_CALL đã nhận (abReq), tạo phản hồi trong abResp như AL1100 + O5D150
+METHOD PRIVATE ProcessRequest
+VAR
+    usiPort   : USINT;
+    bCtrl     : BYTE;
+    uiIdx     : UINT;
+    usiSub    : USINT;
+    uiDataLen : UINT;
+    iS        : INT;
+    uiOff     : UINT;
+    uiSubLen  : UINT;
+    i         : INT;
+    n         : UINT;
+    awList    : ARRAY[0..5] OF WORD;   // event đang active để trả ở index 37
+    abQual    : ARRAY[0..5] OF BYTE;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Xử lý 1 khung IOL_CALL đã nhận (abReq), tạo phản hồi trong abResp như AL1100 + O5D150</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">xRespReady  := TRUE;
+usiBusyLeft := usiInjBusyCount;
+FOR i := 0 TO 7 DO                       // phản hồi echo header request
+    abResp[i] := abReq[i];
+END_FOR
+
+// ---------- 1. Kiểm khung ----------
+IF uiReqLen &lt; GVL_IolConst.uiHDR_LEN
+   OR abReq[0] &lt;&gt; GVL_IolConst.usiEXT_FUNC_NUM
+   OR F_IolGetU16BE(ADR(abReq), 2) &lt;&gt; GVL_IolConst.uiFI_INDEX THEN
+    RespErr(16#7001, 0);                 // wrong IOL_CALL
+    RETURN;
+END_IF
+usiPort   := abReq[1];
+bCtrl     := abReq[4];
+uiIdx     := F_IolGetU16BE(ADR(abReq), 5);
+usiSub    := abReq[7];
+uiDataLen := uiReqLen - GVL_IolConst.uiHDR_LEN;
+
+IF usiPort &lt; 1 OR usiPort &gt; 4 THEN
+    RespErr(16#8001, 0);                 // port không hợp lệ
+    RETURN;
+END_IF
+IF usiPort &lt;&gt; usiDevPort OR NOT xDevPresent THEN
+    RespErr(16#8004, 0);                 // không liên lạc được device trên port
+    RETURN;
+END_IF
+IF bCtrl &lt;&gt; GVL_IolConst.usiCTRL_READ AND bCtrl &lt;&gt; GVL_IolConst.usiCTRL_WRITE THEN
+    RespErr(16#7001, 0);
+    RETURN;
+END_IF
+IF uiInjDevErr &lt;&gt; 0 THEN
+    RespErr(0, uiInjDevErr);
+    RETURN;
+END_IF
+
+// ---------- 2. Index 37: Detailed Device Status (3 byte/entry: qualifier + code) ----------
+IF uiIdx = GVL_O5D150_Def.uiIDX_EVT_LIST THEN
+    IF bCtrl = GVL_IolConst.usiCTRL_WRITE THEN
+        RespErr(0, GVL_IolConst.uiERR_ACCESS);
+    ELSIF xIdx37NotSupported THEN
+        RespErr(0, GVL_IolConst.uiERR_IDX_NA);
+    ELSE
+        awList[0] := SEL(xEvt1Active, 0, 16#8DFE);  abQual[0] := 16#D4;   // appear, notification, device, application
+        awList[1] := SEL(xEvt2Active, 0, 16#8DFF);  abQual[1] := 16#D4;
+        FOR i := 0 TO 3 DO
+            awList[i + 2] := awInjEvent[i];
+            abQual[i + 2] := 16#E4;                                        // appear, warning
+        END_FOR
+        n := 0;
+        FOR i := 0 TO 5 DO
+            IF awList[i] &lt;&gt; 0 THEN
+                abResp[8 + n] := abQual[i];
+                F_IolSetU16BE(ADR(abResp), 9 + n, WORD_TO_UINT(awList[i]));
+                n := n + 3;
+            END_IF
+        END_FOR
+        RespOk(n);
+    END_IF
+    RETURN;
+END_IF
+
+// ---------- 3. Index 2: System Command ----------
+IF uiIdx = GVL_O5D150_Def.uiIDX_SYS_CMD THEN
+    IF bCtrl = GVL_IolConst.usiCTRL_READ THEN
+        RespErr(0, GVL_IolConst.uiERR_ACCESS);      // write only
+    ELSIF uiDataLen &gt; 1 THEN
+        RespErr(0, 16#8033);
+    ELSIF uiDataLen &lt; 1 THEN
+        RespErr(0, 16#8034);
+    ELSE
+        usiLastSysCmd := abReq[8];
+        CASE usiLastSysCmd OF
+            130: InitStore(); xEvt1Active := FALSE; xEvt2Active := FALSE; RespOk(0);
+            240: xEvt1Active := TRUE;  RespOk(0);
+            241: xEvt1Active := FALSE; RespOk(0);
+            242: xEvt2Active := TRUE;  RespOk(0);
+            243: xEvt2Active := FALSE; RespOk(0);
+        ELSE
+            RespErr(0, 16#8035);                    // lệnh không có trong IODD
+        END_CASE
+    END_IF
+    RETURN;
+END_IF
+
+// ---------- 4. Bảng tham số ----------
+iS := FindStore(uiIdx);
+IF iS &lt; 0 THEN
+    RespErr(0, GVL_IolConst.uiERR_IDX_NA);
+    RETURN;
+END_IF
+IF NOT SubRange(iStore := iS, usiSub := usiSub, uiOff =&gt; uiOff, uiLen =&gt; uiSubLen) THEN
+    RespErr(0, GVL_IolConst.uiERR_SUBIDX_NA);
+    RETURN;
+END_IF
+
+IF bCtrl = GVL_IolConst.usiCTRL_READ THEN
+    IF aStore[iS].eAccess = E_IolAccess.WO THEN
+        RespErr(0, GVL_IolConst.uiERR_ACCESS);
+        RETURN;
+    END_IF
+    IF uiIdx = 69 THEN
+        aStore[iS].abData[0] := usiSimAlign;
+    END_IF
+    FOR i := 0 TO UINT_TO_INT(uiSubLen) - 1 DO
+        abResp[8 + i] := aStore[iS].abData[uiOff + INT_TO_UINT(i)];
+    END_FOR
+    RespOk(uiSubLen);
+ELSE
+    IF aStore[iS].eAccess = E_IolAccess.RO THEN
+        RespErr(0, GVL_IolConst.uiERR_ACCESS);
+    ELSIF uiDataLen &gt; uiSubLen THEN
+        RespErr(0, 16#8033);
+    ELSIF uiDataLen &lt; uiSubLen THEN
+        RespErr(0, 16#8034);
+    ELSE
+        // ghép giá trị mới vào bản sao record rồi kiểm dải trước khi chấp nhận
+        abTmp := aStore[iS].abData;
+        FOR i := 0 TO UINT_TO_INT(uiSubLen) - 1 DO
+            abTmp[uiOff + INT_TO_UINT(i)] := abReq[8 + i];
+        END_FOR
+        IF CheckImage(uiIdx, ADR(abTmp)) THEN
+            aStore[iS].abData := abTmp;
+            RespOk(0);
+        ELSE
+            RespErr(0, GVL_IolConst.uiERR_RANGE);
+        END_IF
+    END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xử lý 1 khung IOL_CALL đã nhận (abReq), tạo phản hồi trong abResp như AL1100 + O5D150
+METHOD PRIVATE ProcessRequest
+VAR
+    usiPort   : USINT;
+    bCtrl     : BYTE;
+    uiIdx     : UINT;
+    usiSub    : USINT;
+    uiDataLen : UINT;
+    iS        : INT;
+    uiOff     : UINT;
+    uiSubLen  : UINT;
+    i         : INT;
+    n         : UINT;
+    awList    : ARRAY[0..5] OF WORD;   // event đang active để trả ở index 37
+    abQual    : ARRAY[0..5] OF BYTE;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giả lập AL1100 + O5D150 cho CODESYS Simulation: nhận khung IOL_CALL qua Write, trả phản hồi qua Read
+// theo layout record CAP 0xB400 (plan mục 4.2). Dữ liệu O5D150 lấy theo IODD; có cờ chèn lỗi để test.
+FUNCTION_BLOCK FB_MockRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    tDelayWr           : TIME  := T#30MS;     // thời gian giả lập WRREC
+    tDelayRd           : TIME  := T#30MS;     // thời gian giả lập RDREC
+    usiDevPort         : USINT := GVL_IolConst.usiPORT_O5D150;   // port có O5D150 giả lập
+    xDevPresent        : BOOL  := TRUE;       // FALSE -&gt; master trả lỗi truyền thông 0x8004
+    usiSimAlign        : USINT := 75;         // giá trị Align (index 69) trả về [%]
+    // --- Chèn lỗi ---
+    xInjPnioErr        : BOOL;                // WRREC trả STATUS DE80B000
+    usiInjBusyCount    : USINT;               // số lần RDREC trả "bận" (B5) cho mỗi request
+    uiInjDevErr        : UINT;                // &lt;&gt; 0: mọi request trả lỗi device này (vd 16#8023)
+    xInjNoResponse     : BOOL;                // không bao giờ xong -&gt; test timeout
+    xInjBadFrame       : BOOL;                // phản hồi byte 0 sai -&gt; lỗi FRAME
+    xIdx37NotSupported : BOOL;                // index 37 trả 0x8011 như IODD (không khai báo)
+    awInjEvent         : ARRAY[0..3] OF WORD; // thêm event bất kỳ vào danh sách index 37 (0 = trống)
+END_VAR
+VAR_OUTPUT
+    udiWrCount    : UDINT;
+    udiRdCount    : UDINT;
+    usiLastSysCmd : USINT;                    // System Command gần nhất nhận được
+    xEvt1Active   : BOOL;                     // Test Event 0x8DFE đang active
+    xEvt2Active   : BOOL;                     // Test Event 0x8DFF đang active
+END_VAR
+VAR
+    xInit       : BOOL;
+    aStore      : ARRAY[0..19] OF ST_MockParam;
+    iStoreCount : INT;
+    tonWr       : TON;
+    tonRd       : TON;
+    xWrActive   : BOOL;
+    xWrFinished : BOOL;
+    xWrFailed   : BOOL;
+    dwWrStat    : DWORD;
+    xRdActive   : BOOL;
+    xRdFinished : BOOL;
+    xRdFailed   : BOOL;
+    dwRdStat    : DWORD;
+    iRdLenOut   : INT;
+    abReq       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiReqLen    : UINT;
+    abResp      : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;
+    uiRespLen   : UINT;
+    xRespReady  : BOOL;
+    usiBusyLeft : USINT;
+    abTmp       : ARRAY[0..63] OF BYTE;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>61212fd4-6807-400d-ab4d-9b750ba8e05d</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="FB_MockRecordAccess" ObjectId="61212fd4-6807-400d-ab4d-9b750ba8e05d">
+              <Object Name="Write" ObjectId="beb33db4-a694-4056-b6c0-5a1eed854045" />
+              <Object Name="Read" ObjectId="802e85b1-b49a-4350-afd1-48ae5849bb69" />
+              <Object Name="InitStore" ObjectId="fb9e783a-f8ac-410b-90cb-bf1bb0058c28" />
+              <Object Name="AddRaw" ObjectId="1ea2e622-2aee-4abf-99a6-d189a216bf72" />
+              <Object Name="AddStr" ObjectId="856d44a7-a2a1-4d89-a68a-bce365873e04" />
+              <Object Name="FindStore" ObjectId="f3f9082f-4252-4299-8556-3afbdbb462d4" />
+              <Object Name="SubRange" ObjectId="cf89effd-aa92-44d7-aa15-d52ac87f15e1" />
+              <Object Name="CheckImage" ObjectId="f40f0461-7eee-40ea-ad2c-6124e5e42712" />
+              <Object Name="RespOk" ObjectId="404d7edd-cae2-455b-9cae-67b80fb454e6" />
+              <Object Name="RespErr" ObjectId="1347eda0-7adc-42a1-a4d3-380a528feda5" />
+              <Object Name="ProcessRequest" ObjectId="cc846871-bc82-4b54-91bf-8f47bc7d5bf1" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:34:50.2258646" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="E_IolService">
+        <baseType>
+          <enum>
+            <values>
+              <value name="WRITE" value="2" />
+              <value name="READ" value="3" />
+            </values>
+            <baseType>
+              <USINT />
+            </baseType>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>WRITE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> ISDU write</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>READ</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> ISDU read</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">{attribute 'qualified_only'}
+// Giá trị byte Control của khung IOL_CALL (request)
+TYPE E_IolService :
+(
+    WRITE := 2,   // ISDU write
+    READ  := 3    // ISDU read
+) USINT;
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>de9d72f7-c77f-4dc3-8a98-6bcdd2709895</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giá trị byte Control của khung IOL_CALL (request)</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="E_IolService" ObjectId="de9d72f7-c77f-4dc3-8a98-6bcdd2709895" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

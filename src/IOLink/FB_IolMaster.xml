@@ -1,0 +1,1306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:24.3329044" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_IolMaster" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="itfRec">
+              <type>
+                <derived name="ITF_IolRecordAccess" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> transport thật (FB_PnRecordAccess) hoặc mock</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xEnable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FALSE: không lấy request mới từ hàng đợi</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dwId">
+              <type>
+                <DWORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> ID submodule CAP (CommFB.SUBSLOT_ID), mock bỏ qua</xhtml>
+              </documentation>
+            </variable>
+            <variable name="tTimeout">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="GVL_IolConst.tCALL_TIMEOUT" />
+              </initialValue>
+            </variable>
+            <variable name="xReset">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> xoá hàng đợi, thoát STUCK</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1 instance cho mỗi IO-Link master (AL1100). Khoá + hàng đợi FIFO: tại 1 thời điểm chỉ 1 IOL_CALL
+// chạy trên record CAP, các client (FB_IolCall) lần lượt theo thứ tự Submit -&gt; công bằng giữa các device.
+FUNCTION_BLOCK FB_IolMaster
+VAR_INPUT
+    itfRec   : ITF_IolRecordAccess;                // transport thật (FB_PnRecordAccess) hoặc mock
+    xEnable  : BOOL := TRUE;                       // FALSE: không lấy request mới từ hàng đợi
+    dwId     : DWORD;                              // ID submodule CAP (CommFB.SUBSLOT_ID), mock bỏ qua
+    tTimeout : TIME := GVL_IolConst.tCALL_TIMEOUT;
+    xReset   : BOOL;                               // xoá hàng đợi, thoát STUCK
+END_VAR
+VAR_OUTPUT
+    eState          : E_IolCallState;
+    xBusy           : BOOL;
+    usiActiveClient : USINT;                       // handle đang chạy, 0 = rảnh
+    uiQueueCount    : UINT;
+    udiCallCount    : UDINT;                       // số lần gọi OK
+    udiErrCount     : UDINT;                       // số lần gọi lỗi
+    xNoTransport    : BOOL;                        // itfRec chưa gán
+END_VAR
+VAR
+    aQueue     : ARRAY[0..GVL_IolConst.iQUEUE_SIZE - 1] OF USINT;   // FIFO handle
+    iHead      : INT;
+    iCount     : INT;
+    aReq       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolRequest;
+    aRes       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolResult;
+    axPending  : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // đã Submit, chưa có kết quả
+    axResReady : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // kết quả chờ client Poll
+    axCancel   : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // client đã bỏ, huỷ kết quả
+    usiHandles : USINT;                                             // số client đã Register
+    abTx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung gửi (Watch khi test)
+    abRx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung nhận
+    uiTxLen    : UINT;
+    uiRxLen    : UINT;
+    xWrReq     : BOOL;          // REQ cho chu kỳ sau (state machine quyết định)
+    xRdReq     : BOOL;
+    xWrDone    : BOOL;
+    xWrBusy    : BOOL;
+    xWrErr     : BOOL;
+    dwWrStatus : DWORD;
+    xRdValid   : BOOL;
+    xRdBusy    : BOOL;
+    xRdErr     : BOOL;
+    dwRdStatus : DWORD;
+    iRdLen     : INT;
+    tonTimeout : TON;
+    tonRetry   : TON;
+    tonStuck   : TON;
+    iRetry     : INT;
+    stCur      : ST_IolResult;  // kết quả request đang chạy
+    stEmpty    : ST_IolResult;
+    i          : INT;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <outputVars>
+            <variable name="eState">
+              <type>
+                <derived name="E_IolCallState" />
+              </type>
+            </variable>
+            <variable name="xBusy">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="usiActiveClient">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> handle đang chạy, 0 = rảnh</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiQueueCount">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="udiCallCount">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> số lần gọi OK</xhtml>
+              </documentation>
+            </variable>
+            <variable name="udiErrCount">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> số lần gọi lỗi</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xNoTransport">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> itfRec chưa gán</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1 instance cho mỗi IO-Link master (AL1100). Khoá + hàng đợi FIFO: tại 1 thời điểm chỉ 1 IOL_CALL
+// chạy trên record CAP, các client (FB_IolCall) lần lượt theo thứ tự Submit -&gt; công bằng giữa các device.
+FUNCTION_BLOCK FB_IolMaster
+VAR_INPUT
+    itfRec   : ITF_IolRecordAccess;                // transport thật (FB_PnRecordAccess) hoặc mock
+    xEnable  : BOOL := TRUE;                       // FALSE: không lấy request mới từ hàng đợi
+    dwId     : DWORD;                              // ID submodule CAP (CommFB.SUBSLOT_ID), mock bỏ qua
+    tTimeout : TIME := GVL_IolConst.tCALL_TIMEOUT;
+    xReset   : BOOL;                               // xoá hàng đợi, thoát STUCK
+END_VAR
+VAR_OUTPUT
+    eState          : E_IolCallState;
+    xBusy           : BOOL;
+    usiActiveClient : USINT;                       // handle đang chạy, 0 = rảnh
+    uiQueueCount    : UINT;
+    udiCallCount    : UDINT;                       // số lần gọi OK
+    udiErrCount     : UDINT;                       // số lần gọi lỗi
+    xNoTransport    : BOOL;                        // itfRec chưa gán
+END_VAR
+VAR
+    aQueue     : ARRAY[0..GVL_IolConst.iQUEUE_SIZE - 1] OF USINT;   // FIFO handle
+    iHead      : INT;
+    iCount     : INT;
+    aReq       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolRequest;
+    aRes       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolResult;
+    axPending  : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // đã Submit, chưa có kết quả
+    axResReady : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // kết quả chờ client Poll
+    axCancel   : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // client đã bỏ, huỷ kết quả
+    usiHandles : USINT;                                             // số client đã Register
+    abTx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung gửi (Watch khi test)
+    abRx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung nhận
+    uiTxLen    : UINT;
+    uiRxLen    : UINT;
+    xWrReq     : BOOL;          // REQ cho chu kỳ sau (state machine quyết định)
+    xRdReq     : BOOL;
+    xWrDone    : BOOL;
+    xWrBusy    : BOOL;
+    xWrErr     : BOOL;
+    dwWrStatus : DWORD;
+    xRdValid   : BOOL;
+    xRdBusy    : BOOL;
+    xRdErr     : BOOL;
+    dwRdStatus : DWORD;
+    iRdLen     : INT;
+    tonTimeout : TON;
+    tonRetry   : TON;
+    tonStuck   : TON;
+    iRetry     : INT;
+    stCur      : ST_IolResult;  // kết quả request đang chạy
+    stEmpty    : ST_IolResult;
+    i          : INT;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </outputVars>
+          <localVars>
+            <variable name="aQueue">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.iQUEUE_SIZE - 1)" />
+                  <baseType>
+                    <USINT />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FIFO handle</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iHead">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iCount">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="aReq">
+              <type>
+                <array>
+                  <dimension lower="1" upper="GVL_IolConst.iQUEUE_SIZE" />
+                  <baseType>
+                    <derived name="ST_IolRequest" />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="aRes">
+              <type>
+                <array>
+                  <dimension lower="1" upper="GVL_IolConst.iQUEUE_SIZE" />
+                  <baseType>
+                    <derived name="ST_IolResult" />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="axPending">
+              <type>
+                <array>
+                  <dimension lower="1" upper="GVL_IolConst.iQUEUE_SIZE" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> đã Submit, chưa có kết quả</xhtml>
+              </documentation>
+            </variable>
+            <variable name="axResReady">
+              <type>
+                <array>
+                  <dimension lower="1" upper="GVL_IolConst.iQUEUE_SIZE" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> kết quả chờ client Poll</xhtml>
+              </documentation>
+            </variable>
+            <variable name="axCancel">
+              <type>
+                <array>
+                  <dimension lower="1" upper="GVL_IolConst.iQUEUE_SIZE" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> client đã bỏ, huỷ kết quả</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiHandles">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> số client đã Register</xhtml>
+              </documentation>
+            </variable>
+            <variable name="abTx">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.uiMAX_REC - 1)" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> khung gửi (Watch khi test)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="abRx">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.uiMAX_REC - 1)" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> khung nhận</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiTxLen">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="uiRxLen">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="xWrReq">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> REQ cho chu kỳ sau (state machine quyết định)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xRdReq">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xWrDone">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xWrBusy">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xWrErr">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="dwWrStatus">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="xRdValid">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xRdBusy">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xRdErr">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="dwRdStatus">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="iRdLen">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="tonTimeout">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="tonRetry">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="tonStuck">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="iRetry">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="stCur">
+              <type>
+                <derived name="ST_IolResult" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> kết quả request đang chạy</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stEmpty">
+              <type>
+                <derived name="ST_IolResult" />
+              </type>
+            </variable>
+            <variable name="i">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1 instance cho mỗi IO-Link master (AL1100). Khoá + hàng đợi FIFO: tại 1 thời điểm chỉ 1 IOL_CALL
+// chạy trên record CAP, các client (FB_IolCall) lần lượt theo thứ tự Submit -&gt; công bằng giữa các device.
+FUNCTION_BLOCK FB_IolMaster
+VAR_INPUT
+    itfRec   : ITF_IolRecordAccess;                // transport thật (FB_PnRecordAccess) hoặc mock
+    xEnable  : BOOL := TRUE;                       // FALSE: không lấy request mới từ hàng đợi
+    dwId     : DWORD;                              // ID submodule CAP (CommFB.SUBSLOT_ID), mock bỏ qua
+    tTimeout : TIME := GVL_IolConst.tCALL_TIMEOUT;
+    xReset   : BOOL;                               // xoá hàng đợi, thoát STUCK
+END_VAR
+VAR_OUTPUT
+    eState          : E_IolCallState;
+    xBusy           : BOOL;
+    usiActiveClient : USINT;                       // handle đang chạy, 0 = rảnh
+    uiQueueCount    : UINT;
+    udiCallCount    : UDINT;                       // số lần gọi OK
+    udiErrCount     : UDINT;                       // số lần gọi lỗi
+    xNoTransport    : BOOL;                        // itfRec chưa gán
+END_VAR
+VAR
+    aQueue     : ARRAY[0..GVL_IolConst.iQUEUE_SIZE - 1] OF USINT;   // FIFO handle
+    iHead      : INT;
+    iCount     : INT;
+    aReq       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolRequest;
+    aRes       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolResult;
+    axPending  : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // đã Submit, chưa có kết quả
+    axResReady : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // kết quả chờ client Poll
+    axCancel   : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // client đã bỏ, huỷ kết quả
+    usiHandles : USINT;                                             // số client đã Register
+    abTx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung gửi (Watch khi test)
+    abRx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung nhận
+    uiTxLen    : UINT;
+    uiRxLen    : UINT;
+    xWrReq     : BOOL;          // REQ cho chu kỳ sau (state machine quyết định)
+    xRdReq     : BOOL;
+    xWrDone    : BOOL;
+    xWrBusy    : BOOL;
+    xWrErr     : BOOL;
+    dwWrStatus : DWORD;
+    xRdValid   : BOOL;
+    xRdBusy    : BOOL;
+    xRdErr     : BOOL;
+    dwRdStatus : DWORD;
+    iRdLen     : INT;
+    tonTimeout : TON;
+    tonRetry   : TON;
+    tonStuck   : TON;
+    iRetry     : INT;
+    stCur      : ST_IolResult;  // kết quả request đang chạy
+    stEmpty    : ST_IolResult;
+    i          : INT;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1 instance cho mỗi IO-Link master (AL1100). Khoá + hàng đợi FIFO: tại 1 thời điểm chỉ 1 IOL_CALL
+ chạy trên record CAP, các client (FB_IolCall) lần lượt theo thứ tự Submit -&gt; công bằng giữa các device.</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// ---------- 0. Reset: trả lỗi LOCK cho mọi request đang chờ, về IDLE ----------
+IF xReset THEN
+    xWrReq := FALSE;
+    xRdReq := FALSE;
+    FOR i := 1 TO GVL_IolConst.iQUEUE_SIZE DO
+        IF axPending[i] AND NOT axCancel[i] THEN
+            aRes[i] := stEmpty;
+            aRes[i].xError := TRUE;
+            aRes[i].eErrSource := E_IolErrSource.LOCK;
+            axResReady[i] := TRUE;
+        END_IF
+        axPending[i] := FALSE;
+        axCancel[i]  := FALSE;
+    END_FOR
+    iHead := 0;
+    iCount := 0;
+    usiActiveClient := 0;
+    tonTimeout(IN := FALSE);
+    tonRetry(IN := FALSE);
+    tonStuck(IN := FALSE);
+    eState := E_IolCallState.IDLE;
+END_IF
+
+// ---------- 1. Gọi transport đúng 1 lần mỗi chu kỳ, REQ do chu kỳ trước quyết định ----------
+xNoTransport := (itfRec = 0);
+IF NOT xNoTransport THEN
+    itfRec.Write(xReq := xWrReq, dwId := dwId, iIndex := UINT_TO_INT(GVL_IolConst.uiCAP_INDEX),
+                 iLen := UINT_TO_INT(uiTxLen), pData := ADR(abTx),
+                 xDone =&gt; xWrDone, xBusy =&gt; xWrBusy, xError =&gt; xWrErr, dwStatus =&gt; dwWrStatus);
+    itfRec.Read(xReq := xRdReq, dwId := dwId, iIndex := UINT_TO_INT(GVL_IolConst.uiCAP_INDEX),
+                iMLen := UINT_TO_INT(GVL_IolConst.uiMAX_REC), pData := ADR(abRx),
+                xValid =&gt; xRdValid, xBusy =&gt; xRdBusy, xError =&gt; xRdErr, dwStatus =&gt; dwRdStatus, iLen =&gt; iRdLen);
+ELSE
+    xWrDone := FALSE; xWrBusy := FALSE; xWrErr := FALSE;
+    xRdValid := FALSE; xRdBusy := FALSE; xRdErr := FALSE;
+END_IF
+
+// ---------- 2. Timeout tổng của 1 request ----------
+tonTimeout(IN := eState = E_IolCallState.WRITE_REQ OR eState = E_IolCallState.RETRY_WR
+              OR eState = E_IolCallState.READ_WAIT OR eState = E_IolCallState.READ_REQ,
+           PT := tTimeout);
+IF tonTimeout.Q THEN
+    xWrReq := FALSE;
+    xRdReq := FALSE;
+    tonStuck(IN := FALSE);
+    eState := E_IolCallState.TIMEOUT;
+END_IF
+
+// ---------- 3. State machine IOL_CALL ----------
+CASE eState OF
+    E_IolCallState.IDLE:
+        xWrReq := FALSE;
+        xRdReq := FALSE;
+        IF xEnable AND iCount &gt; 0 THEN
+            usiActiveClient := aQueue[iHead];
+            iHead  := (iHead + 1) MOD GVL_IolConst.iQUEUE_SIZE;
+            iCount := iCount - 1;
+            IF axCancel[usiActiveClient] OR NOT axPending[usiActiveClient] THEN
+                // client đã bỏ trước khi tới lượt: bỏ qua, không gửi
+                axCancel[usiActiveClient]  := FALSE;
+                axPending[usiActiveClient] := FALSE;
+                usiActiveClient := 0;
+            ELSE
+                stCur  := stEmpty;
+                iRetry := 0;
+                BuildFrame();
+                IF xNoTransport THEN
+                    stCur.eErrSource   := E_IolErrSource.PNIO;
+                    stCur.dwPnioStatus := GVL_IolConst.dwSTAT_NO_TRANSPORT;
+                    eState := E_IolCallState.ERROR;
+                ELSE
+                    xWrReq := TRUE;
+                    eState := E_IolCallState.WRITE_REQ;
+                END_IF
+            END_IF
+        END_IF
+
+    E_IolCallState.WRITE_REQ:
+        IF xWrDone THEN
+            xWrReq := FALSE;
+            tonRetry(IN := FALSE);
+            eState := E_IolCallState.READ_WAIT;
+        ELSIF xWrErr THEN
+            xWrReq := FALSE;
+            IF F_IolIsPnioBusy(dwWrStatus) AND iRetry &lt; GVL_IolConst.iMAX_RETRY THEN
+                iRetry := iRetry + 1;
+                tonRetry(IN := FALSE);
+                eState := E_IolCallState.RETRY_WR;
+            ELSE
+                stCur.eErrSource   := E_IolErrSource.PNIO;
+                stCur.dwPnioStatus := dwWrStatus;
+                eState := E_IolCallState.ERROR;
+            END_IF
+        END_IF
+
+    E_IolCallState.RETRY_WR:
+        tonRetry(IN := TRUE, PT := GVL_IolConst.tRETRY_DELAY);
+        IF tonRetry.Q THEN
+            tonRetry(IN := FALSE);
+            xWrReq := TRUE;
+            eState := E_IolCallState.WRITE_REQ;
+        END_IF
+
+    E_IolCallState.READ_WAIT:
+        tonRetry(IN := TRUE, PT := GVL_IolConst.tRETRY_DELAY);
+        IF tonRetry.Q THEN
+            tonRetry(IN := FALSE);
+            xRdReq := TRUE;
+            eState := E_IolCallState.READ_REQ;
+        END_IF
+
+    E_IolCallState.READ_REQ:
+        IF xRdValid THEN
+            xRdReq  := FALSE;
+            uiRxLen := INT_TO_UINT(MAX(iRdLen, 0));
+            IF ParseResponse() THEN
+                eState := E_IolCallState.DONE;
+            ELSE
+                eState := E_IolCallState.ERROR;
+            END_IF
+        ELSIF xRdErr THEN
+            xRdReq := FALSE;
+            IF F_IolIsPnioBusy(dwRdStatus) AND iRetry &lt; GVL_IolConst.iMAX_RETRY THEN
+                iRetry := iRetry + 1;                 // ISDU chưa xong trên master -&gt; đọc lại sau
+                tonRetry(IN := FALSE);
+                eState := E_IolCallState.READ_WAIT;
+            ELSE
+                stCur.eErrSource   := E_IolErrSource.PNIO;
+                stCur.dwPnioStatus := dwRdStatus;
+                eState := E_IolCallState.ERROR;
+            END_IF
+        END_IF
+
+    E_IolCallState.DONE:
+        Finish(xErr := FALSE);
+        eState := E_IolCallState.IDLE;
+
+    E_IolCallState.ERROR:
+        Finish(xErr := TRUE);
+        eState := E_IolCallState.IDLE;
+
+    E_IolCallState.TIMEOUT:
+        // REQ đã hạ; chờ transport hết BUSY rồi mới cho request mới (tránh chồng record)
+        xWrReq := FALSE;
+        xRdReq := FALSE;
+        tonStuck(IN := TRUE, PT := T#1S);
+        IF NOT xWrBusy AND NOT xRdBusy THEN
+            tonStuck(IN := FALSE);
+            stCur.eErrSource := E_IolErrSource.TIMEOUT;
+            Finish(xErr := TRUE);
+            eState := E_IolCallState.IDLE;
+        ELSIF tonStuck.Q THEN
+            tonStuck(IN := FALSE);
+            stCur.eErrSource := E_IolErrSource.TIMEOUT;
+            Finish(xErr := TRUE);
+            eState := E_IolCallState.STUCK;
+        END_IF
+
+    E_IolCallState.STUCK:
+        // chỉ thoát bằng xReset (bước 0)
+        xWrReq := FALSE;
+        xRdReq := FALSE;
+END_CASE
+
+xBusy := (eState &lt;&gt; E_IolCallState.IDLE);
+uiQueueCount := INT_TO_UINT(iCount);
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="BuildFrame" ObjectId="e703f18b-ae0a-4a70-80c0-c48785843073">
+              <interface>
+                <localVars>
+                  <variable name="h">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="n">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Tạo khung IOL_CALL (abTx, uiTxLen) cho client đang chạy - layout plan mục 4.2
+METHOD PRIVATE BuildFrame
+VAR
+    h : USINT;
+    i : INT;
+    n : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Tạo khung IOL_CALL (abTx, uiTxLen) cho client đang chạy - layout plan mục 4.2</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">h := usiActiveClient;
+abTx[0] := GVL_IolConst.usiEXT_FUNC_NUM;
+abTx[1] := aReq[h].usiPort;
+F_IolSetU16BE(ADR(abTx), 2, GVL_IolConst.uiFI_INDEX);
+abTx[4] := TO_BYTE(aReq[h].eService);
+F_IolSetU16BE(ADR(abTx), 5, aReq[h].uiIndex);
+abTx[7] := aReq[h].usiSubindex;
+uiTxLen := GVL_IolConst.uiHDR_LEN;
+IF aReq[h].eService = E_IolService.WRITE THEN
+    n := MIN(aReq[h].uiLen, GVL_IolConst.uiMAX_DATA);
+    FOR i := 0 TO UINT_TO_INT(n) - 1 DO
+        abTx[GVL_IolConst.uiHDR_LEN + INT_TO_UINT(i)] := aReq[h].abData[i];
+    END_FOR
+    uiTxLen := GVL_IolConst.uiHDR_LEN + n;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Tạo khung IOL_CALL (abTx, uiTxLen) cho client đang chạy - layout plan mục 4.2
+METHOD PRIVATE BuildFrame
+VAR
+    h : USINT;
+    i : INT;
+    n : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ParseResponse" ObjectId="03b98f93-f523-496a-9df5-377552549b40">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <localVars>
+                  <variable name="h">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="n">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kiểm khung phản hồi abRx và điền stCur. Layout lỗi (Control 0x80, byte 5..8) là GIẢ ĐỊNH theo spec PNO,
+// phải đối chiếu manual AL1100 khi test thật - chỉ cần sửa trong method này.
+METHOD PRIVATE ParseResponse : BOOL
+VAR
+    h : USINT;
+    i : INT;
+    n : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Kiểm khung phản hồi abRx và điền stCur. Layout lỗi (Control 0x80, byte 5..8) là GIẢ ĐỊNH theo spec PNO,
+ phải đối chiếu manual AL1100 khi test thật - chỉ cần sửa trong method này.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ParseResponse := FALSE;
+h := usiActiveClient;
+
+IF uiRxLen &lt; 5
+   OR abRx[0] &lt;&gt; GVL_IolConst.usiEXT_FUNC_NUM
+   OR abRx[1] &lt;&gt; aReq[h].usiPort
+   OR F_IolGetU16BE(ADR(abRx), 2) &lt;&gt; GVL_IolConst.uiFI_INDEX THEN
+    stCur.eErrSource := E_IolErrSource.FRAME;
+    RETURN;
+END_IF
+
+IF abRx[4] = GVL_IolConst.usiCTRL_ERROR THEN
+    IF uiRxLen &gt;= 7 THEN
+        stCur.uiIolMasterErr := F_IolGetU16BE(ADR(abRx), 5);
+    END_IF
+    IF uiRxLen &gt;= 9 THEN
+        stCur.uiIolDevErr := F_IolGetU16BE(ADR(abRx), 7);
+    END_IF
+    IF stCur.uiIolDevErr &lt;&gt; 0 THEN
+        stCur.eErrSource := E_IolErrSource.IOL_DEVICE;
+    ELSE
+        stCur.eErrSource := E_IolErrSource.IOL_MASTER;
+    END_IF
+    RETURN;
+END_IF
+
+IF uiRxLen &lt; GVL_IolConst.uiHDR_LEN
+   OR abRx[4] &lt;&gt; TO_BYTE(aReq[h].eService)
+   OR F_IolGetU16BE(ADR(abRx), 5) &lt;&gt; aReq[h].uiIndex
+   OR abRx[7] &lt;&gt; aReq[h].usiSubindex THEN
+    stCur.eErrSource := E_IolErrSource.FRAME;
+    RETURN;
+END_IF
+
+n := MIN(uiRxLen - GVL_IolConst.uiHDR_LEN, GVL_IolConst.uiMAX_DATA);
+FOR i := 0 TO UINT_TO_INT(n) - 1 DO
+    stCur.abData[i] := abRx[GVL_IolConst.uiHDR_LEN + INT_TO_UINT(i)];
+END_FOR
+stCur.uiLen := n;
+ParseResponse := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Kiểm khung phản hồi abRx và điền stCur. Layout lỗi (Control 0x80, byte 5..8) là GIẢ ĐỊNH theo spec PNO,
+// phải đối chiếu manual AL1100 khi test thật - chỉ cần sửa trong method này.
+METHOD PRIVATE ParseResponse : BOOL
+VAR
+    h : USINT;
+    i : INT;
+    n : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Finish" ObjectId="b39fed7f-521e-4653-a4bb-b4e8027d4bc0">
+              <interface>
+                <inputVars>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giao kết quả stCur cho client đang chạy (bỏ nếu client đã Cancel), giải phóng khoá
+METHOD PRIVATE Finish
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    h : USINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="h">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giao kết quả stCur cho client đang chạy (bỏ nếu client đã Cancel), giải phóng khoá
+METHOD PRIVATE Finish
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    h : USINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giao kết quả stCur cho client đang chạy (bỏ nếu client đã Cancel), giải phóng khoá</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">h := usiActiveClient;
+IF h &gt;= 1 AND h &lt;= GVL_IolConst.iQUEUE_SIZE THEN
+    stCur.xError := xErr;
+    IF NOT axCancel[h] THEN
+        aRes[h] := stCur;
+        axResReady[h] := TRUE;
+    END_IF
+    axCancel[h]  := FALSE;
+    axPending[h] := FALSE;
+END_IF
+IF xErr THEN
+    udiErrCount := udiErrCount + 1;
+ELSE
+    udiCallCount := udiCallCount + 1;
+END_IF
+usiActiveClient := 0;
+xWrReq := FALSE;
+xRdReq := FALSE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giao kết quả stCur cho client đang chạy (bỏ nếu client đã Cancel), giải phóng khoá
+METHOD PRIVATE Finish
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    h : USINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Register" ObjectId="9cbccf21-2f18-44f6-b951-e6a1ac7ac293">
+              <interface>
+                <returnType>
+                  <USINT />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Client gọi 1 lần để nhận handle 1..iQUEUE_SIZE; 0 = hết chỗ</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF usiHandles &lt; INT_TO_USINT(GVL_IolConst.iQUEUE_SIZE) THEN
+    usiHandles := usiHandles + 1;
+    Register := usiHandles;
+ELSE
+    Register := 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Client gọi 1 lần để nhận handle 1..iQUEUE_SIZE; 0 = hết chỗ
+METHOD Register : USINT
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Submit" ObjectId="a200cba4-f079-42a7-b4fb-c3f0a0c36bdf">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="hHandle">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đưa request của client vào cuối FIFO; FALSE nếu handle sai, đang có request chờ hoặc hàng đợi đầy
+METHOD Submit : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stReq : ST_IolRequest;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <inOutVars>
+                  <variable name="stReq">
+                    <type>
+                      <derived name="ST_IolRequest" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đưa request của client vào cuối FIFO; FALSE nếu handle sai, đang có request chờ hoặc hàng đợi đầy
+METHOD Submit : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stReq : ST_IolRequest;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inOutVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đưa request của client vào cuối FIFO; FALSE nếu handle sai, đang có request chờ hoặc hàng đợi đầy</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Submit := FALSE;
+IF hHandle &lt; 1 OR hHandle &gt; GVL_IolConst.iQUEUE_SIZE THEN
+    RETURN;
+END_IF
+IF axPending[hHandle] OR iCount &gt;= GVL_IolConst.iQUEUE_SIZE THEN
+    RETURN;
+END_IF
+aReq[hHandle] := stReq;
+axResReady[hHandle] := FALSE;
+axCancel[hHandle]   := FALSE;
+axPending[hHandle]  := TRUE;
+aQueue[(iHead + iCount) MOD GVL_IolConst.iQUEUE_SIZE] := hHandle;
+iCount := iCount + 1;
+Submit := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đưa request của client vào cuối FIFO; FALSE nếu handle sai, đang có request chờ hoặc hàng đợi đầy
+METHOD Submit : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stReq : ST_IolRequest;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Poll" ObjectId="924d5b33-8ece-49ed-98c1-9b5f78baf2fb">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="hHandle">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// TRUE khi có kết quả cho handle (chép vào stRes và xoá cờ)
+METHOD Poll : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stRes : ST_IolResult;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <inOutVars>
+                  <variable name="stRes">
+                    <type>
+                      <derived name="ST_IolResult" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// TRUE khi có kết quả cho handle (chép vào stRes và xoá cờ)
+METHOD Poll : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stRes : ST_IolResult;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inOutVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE khi có kết quả cho handle (chép vào stRes và xoá cờ)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Poll := FALSE;
+IF hHandle &gt;= 1 AND hHandle &lt;= GVL_IolConst.iQUEUE_SIZE THEN
+    IF axResReady[hHandle] THEN
+        stRes := aRes[hHandle];
+        axResReady[hHandle] := FALSE;
+        Poll := TRUE;
+    END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// TRUE khi có kết quả cho handle (chép vào stRes và xoá cờ)
+METHOD Poll : BOOL
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+VAR_IN_OUT
+    stRes : ST_IolResult;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Cancel" ObjectId="a8755dd1-c5a6-412e-9f1f-b59ff26d5d82">
+              <interface>
+                <inputVars>
+                  <variable name="hHandle">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Client bỏ request (vd timeout phía client): request còn trong FIFO bị bỏ qua, đang chạy thì huỷ kết quả
+METHOD Cancel
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Client bỏ request (vd timeout phía client): request còn trong FIFO bị bỏ qua, đang chạy thì huỷ kết quả</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF hHandle &gt;= 1 AND hHandle &lt;= GVL_IolConst.iQUEUE_SIZE THEN
+    IF axPending[hHandle] THEN
+        axCancel[hHandle] := TRUE;
+    END_IF
+    axResReady[hHandle] := FALSE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Client bỏ request (vd timeout phía client): request còn trong FIFO bị bỏ qua, đang chạy thì huỷ kết quả
+METHOD Cancel
+VAR_INPUT
+    hHandle : USINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// 1 instance cho mỗi IO-Link master (AL1100). Khoá + hàng đợi FIFO: tại 1 thời điểm chỉ 1 IOL_CALL
+// chạy trên record CAP, các client (FB_IolCall) lần lượt theo thứ tự Submit -&gt; công bằng giữa các device.
+FUNCTION_BLOCK FB_IolMaster
+VAR_INPUT
+    itfRec   : ITF_IolRecordAccess;                // transport thật (FB_PnRecordAccess) hoặc mock
+    xEnable  : BOOL := TRUE;                       // FALSE: không lấy request mới từ hàng đợi
+    dwId     : DWORD;                              // ID submodule CAP (CommFB.SUBSLOT_ID), mock bỏ qua
+    tTimeout : TIME := GVL_IolConst.tCALL_TIMEOUT;
+    xReset   : BOOL;                               // xoá hàng đợi, thoát STUCK
+END_VAR
+VAR_OUTPUT
+    eState          : E_IolCallState;
+    xBusy           : BOOL;
+    usiActiveClient : USINT;                       // handle đang chạy, 0 = rảnh
+    uiQueueCount    : UINT;
+    udiCallCount    : UDINT;                       // số lần gọi OK
+    udiErrCount     : UDINT;                       // số lần gọi lỗi
+    xNoTransport    : BOOL;                        // itfRec chưa gán
+END_VAR
+VAR
+    aQueue     : ARRAY[0..GVL_IolConst.iQUEUE_SIZE - 1] OF USINT;   // FIFO handle
+    iHead      : INT;
+    iCount     : INT;
+    aReq       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolRequest;
+    aRes       : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF ST_IolResult;
+    axPending  : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // đã Submit, chưa có kết quả
+    axResReady : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // kết quả chờ client Poll
+    axCancel   : ARRAY[1..GVL_IolConst.iQUEUE_SIZE] OF BOOL;        // client đã bỏ, huỷ kết quả
+    usiHandles : USINT;                                             // số client đã Register
+    abTx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung gửi (Watch khi test)
+    abRx       : ARRAY[0..GVL_IolConst.uiMAX_REC - 1] OF BYTE;      // khung nhận
+    uiTxLen    : UINT;
+    uiRxLen    : UINT;
+    xWrReq     : BOOL;          // REQ cho chu kỳ sau (state machine quyết định)
+    xRdReq     : BOOL;
+    xWrDone    : BOOL;
+    xWrBusy    : BOOL;
+    xWrErr     : BOOL;
+    dwWrStatus : DWORD;
+    xRdValid   : BOOL;
+    xRdBusy    : BOOL;
+    xRdErr     : BOOL;
+    dwRdStatus : DWORD;
+    iRdLen     : INT;
+    tonTimeout : TON;
+    tonRetry   : TON;
+    tonStuck   : TON;
+    iRetry     : INT;
+    stCur      : ST_IolResult;  // kết quả request đang chạy
+    stEmpty    : ST_IolResult;
+    i          : INT;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>29d918ca-7551-4d61-b6b1-18cbf2c1e028</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="FB_IolMaster" ObjectId="29d918ca-7551-4d61-b6b1-18cbf2c1e028">
+              <Object Name="BuildFrame" ObjectId="e703f18b-ae0a-4a70-80c0-c48785843073" />
+              <Object Name="ParseResponse" ObjectId="03b98f93-f523-496a-9df5-377552549b40" />
+              <Object Name="Finish" ObjectId="b39fed7f-521e-4653-a4bb-b4e8027d4bc0" />
+              <Object Name="Register" ObjectId="9cbccf21-2f18-44f6-b951-e6a1ac7ac293" />
+              <Object Name="Submit" ObjectId="a200cba4-f079-42a7-b4fb-c3f0a0c36bdf" />
+              <Object Name="Poll" ObjectId="924d5b33-8ece-49ed-98c1-9b5f78baf2fb" />
+              <Object Name="Cancel" ObjectId="a8755dd1-c5a6-412e-9f1f-b59ff26d5d82" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

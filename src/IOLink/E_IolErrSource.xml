@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:34:50.3994472" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="E_IolErrSource">
+        <baseType>
+          <enum>
+            <values>
+              <value name="NONE" value="0" />
+              <value name="PNIO" value="1" />
+              <value name="IOL_MASTER" value="2" />
+              <value name="IOL_DEVICE" value="3" />
+              <value name="TIMEOUT" value="4" />
+              <value name="PARAM" value="5" />
+              <value name="LOCK" value="6" />
+              <value name="FRAME" value="7" />
+              <value name="NO_DEVICE" value="8" />
+              <value name="WRITE_LOCKED" value="9" />
+              <value name="RANGE" value="10" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>PNIO</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> RDREC/WRREC trả STATUS lỗi (hoặc transport chưa cấu hình)</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>IOL_MASTER</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> AL1100 báo IOL_M_ErrorCode</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>IOL_DEVICE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> cảm biến báo lỗi ISDU 0x80xx</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>PARAM</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> tham số yêu cầu sai, không gửi đi</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>LOCK</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> hết chỗ hàng đợi / không đăng ký được / bị reset</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>FRAME</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> khung phản hồi sai</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>NO_DEVICE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> PQI.DA = 0: port không có thiết bị</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>WRITE_LOCKED</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> ghi bị khoá (chưa bật xMaintEnable)</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>RANGE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> giá trị đặt ngoài dải IODD, chặn trước khi gửi</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">{attribute 'qualified_only'}
+// Nguồn lỗi của 1 lần gọi IO-Link, để HMI biết lỗi nằm ở tầng nào
+TYPE E_IolErrSource :
+(
+    NONE         := 0,
+    PNIO         := 1,    // RDREC/WRREC trả STATUS lỗi (hoặc transport chưa cấu hình)
+    IOL_MASTER   := 2,    // AL1100 báo IOL_M_ErrorCode
+    IOL_DEVICE   := 3,    // cảm biến báo lỗi ISDU 0x80xx
+    TIMEOUT      := 4,
+    PARAM        := 5,    // tham số yêu cầu sai, không gửi đi
+    LOCK         := 6,    // hết chỗ hàng đợi / không đăng ký được / bị reset
+    FRAME        := 7,    // khung phản hồi sai
+    NO_DEVICE    := 8,    // PQI.DA = 0: port không có thiết bị
+    WRITE_LOCKED := 9,    // ghi bị khoá (chưa bật xMaintEnable)
+    RANGE        := 10    // giá trị đặt ngoài dải IODD, chặn trước khi gửi
+) INT;
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>8cfa0e10-4554-4e37-a52c-55eef9648ef3</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Nguồn lỗi của 1 lần gọi IO-Link, để HMI biết lỗi nằm ở tầng nào</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="E_IolErrSource" ObjectId="8cfa0e10-4554-4e37-a52c-55eef9648ef3" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

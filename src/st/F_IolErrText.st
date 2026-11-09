@@ -1,0 +1,79 @@
+﻿// Mã lỗi IO-Link Call -> chuỗi hiển thị HMI
+FUNCTION F_IolErrText : WSTRING(80)
+VAR_INPUT
+    eSrc       : E_IolErrSource;
+    uiMasterEr : UINT;        // IOL_M_ErrorCode
+    uiDevErr   : UINT;        // lỗi ISDU 0x80xx
+    dwPnio     : DWORD;       // STATUS RDREC/WRREC
+END_VAR
+
+(*---IMPL---*)
+CASE eSrc OF
+    E_IolErrSource.NONE:
+        F_IolErrText := "OK";
+
+    E_IolErrSource.PNIO:
+        IF dwPnio = GVL_IolConst.dwSTAT_NOT_CONFIGURED THEN
+            F_IolErrText := "PROFINET chưa cấu hình (FB_PnRecordAccess còn là khung)";
+        ELSIF dwPnio = GVL_IolConst.dwSTAT_NO_TRANSPORT THEN
+            F_IolErrText := "Master chưa gán transport (itfRec)";
+        ELSIF F_IolIsPnioBusy(dwPnio) THEN
+            F_IolErrText := "AL1100 bận quá số lần thử lại";
+        ELSE
+            F_IolErrText := "Lỗi đọc/ghi record PROFINET (xem dwPnioStatus)";
+        END_IF
+
+    E_IolErrSource.IOL_MASTER:
+        CASE uiMasterEr OF
+            16#7000: F_IolErrText := "Master: xung đột IOL_CALL";
+            16#7001: F_IolErrText := "Master: khung IOL_CALL sai";
+            16#7002: F_IolErrText := "Master: port đang bị khoá";
+            16#8000: F_IolErrText := "Master: timeout";
+            16#8001: F_IolErrText := "Master: số port không hợp lệ";
+            16#8002: F_IolErrText := "Master: chế độ port không phải IO-Link";
+            16#8003: F_IolErrText := "Master: độ dài không hợp lệ";
+            16#8004: F_IolErrText := "Master: lỗi truyền thông với thiết bị";
+        ELSE
+            F_IolErrText := "Master: lỗi khác (xem uiIolMasterErr)";
+        END_CASE
+
+    E_IolErrSource.IOL_DEVICE:
+        CASE uiDevErr OF
+            16#8000: F_IolErrText := "Thiết bị: lỗi ứng dụng";
+            16#8011: F_IolErrText := "Thiết bị: index không tồn tại";
+            16#8012: F_IolErrText := "Thiết bị: subindex không tồn tại";
+            16#8020, 16#8021, 16#8022:
+                     F_IolErrText := "Thiết bị: dịch vụ tạm thời không sẵn sàng";
+            16#8023: F_IolErrText := "Thiết bị: từ chối truy cập";
+            16#8030: F_IolErrText := "Thiết bị: giá trị ngoài dải";
+            16#8031: F_IolErrText := "Thiết bị: giá trị vượt giới hạn trên";
+            16#8032: F_IolErrText := "Thiết bị: giá trị dưới giới hạn dưới";
+            16#8033: F_IolErrText := "Thiết bị: dữ liệu quá dài";
+            16#8034: F_IolErrText := "Thiết bị: dữ liệu quá ngắn";
+            16#8035: F_IolErrText := "Thiết bị: chức năng không hỗ trợ";
+            16#8036: F_IolErrText := "Thiết bị: chức năng tạm không sẵn sàng";
+            16#8040: F_IolErrText := "Thiết bị: bộ tham số không hợp lệ";
+            16#8041: F_IolErrText := "Thiết bị: bộ tham số không nhất quán";
+            16#8082: F_IolErrText := "Thiết bị: ứng dụng chưa sẵn sàng";
+        ELSE
+            F_IolErrText := "Thiết bị: lỗi khác (xem uiIolDevErr)";
+        END_CASE
+
+    E_IolErrSource.TIMEOUT:
+        F_IolErrText := "Quá thời gian chờ phản hồi";
+    E_IolErrSource.PARAM:
+        F_IolErrText := "Tham số yêu cầu sai, không gửi";
+    E_IolErrSource.LOCK:
+        F_IolErrText := "Hàng đợi master đầy hoặc đã bị reset";
+    E_IolErrSource.FRAME:
+        F_IolErrText := "Khung phản hồi IOL_CALL sai";
+    E_IolErrSource.NO_DEVICE:
+        F_IolErrText := "Port không có thiết bị (PQI.DA = 0)";
+    E_IolErrSource.WRITE_LOCKED:
+        F_IolErrText := "Ghi bị khoá: chưa bật xMaintEnable";
+    E_IolErrSource.RANGE:
+        F_IolErrText := "Giá trị đặt ngoài dải IODD, không gửi";
+ELSE
+    F_IolErrText := "Lỗi không xác định";
+END_CASE
+

@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:07.5099068" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="F_IolGetU16BE" pouType="function">
+        <interface>
+          <returnType>
+            <UINT />
+          </returnType>
+          <inputVars>
+            <variable name="pBuf">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="uiOff">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> vị trí byte MSB</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc UINT big-endian (IO-Link/PROFINET) từ buffer byte - TBEN là ARM little-endian nên không ép kiểu trực tiếp
+FUNCTION F_IolGetU16BE : UINT
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;               // vị trí byte MSB
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đọc UINT big-endian (IO-Link/PROFINET) từ buffer byte - TBEN là ARM little-endian nên không ép kiểu trực tiếp</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF pBuf = 0 THEN
+    F_IolGetU16BE := 0;
+    RETURN;
+END_IF
+F_IolGetU16BE := WORD_TO_UINT(SHL(BYTE_TO_WORD(pBuf[uiOff]), 8) OR BYTE_TO_WORD(pBuf[uiOff + 1]));
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc UINT big-endian (IO-Link/PROFINET) từ buffer byte - TBEN là ARM little-endian nên không ép kiểu trực tiếp
+FUNCTION F_IolGetU16BE : UINT
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;               // vị trí byte MSB
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>5e736496-6d13-4eaa-b392-08582bd57477</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="F_IolGetU16BE" ObjectId="5e736496-6d13-4eaa-b392-08582bd57477" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

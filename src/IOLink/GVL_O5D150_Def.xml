@@ -1,0 +1,729 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.4694696" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/globalvars" handleUnknown="implementation">
+      <globalVars name="GVL_O5D150_Def" constant="true">
+        <variable name="uiPDIN_LEN">
+          <type>
+            <UINT />
+          </type>
+          <initialValue>
+            <simpleValue value="2" />
+          </initialValue>
+        </variable>
+        <variable name="stPdLayout">
+          <type>
+            <derived name="ST_O5D150_PdLayout" />
+          </type>
+          <initialValue>
+            <structValue>
+              <value member="usiOut1Bit">
+                <simpleValue value="0" />
+              </value>
+              <value member="usiDistBitOffset">
+                <simpleValue value="4" />
+              </value>
+              <value member="wDistMask">
+                <simpleValue value="16#FFF" />
+              </value>
+              <value member="uiDistMin">
+                <simpleValue value="5" />
+              </value>
+              <value member="uiDistMax">
+                <simpleValue value="200" />
+              </value>
+              <value member="rGradient">
+                <simpleValue value="0.01" />
+              </value>
+            </structValue>
+          </initialValue>
+        </variable>
+        <variable name="iPARAM_COUNT">
+          <type>
+            <INT />
+          </type>
+          <initialValue>
+            <simpleValue value="10" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> = số phần tử E_O5D150_Param</xhtml>
+          </documentation>
+        </variable>
+        <variable name="aParamDef">
+          <type>
+            <array>
+              <dimension lower="0" upper="9" />
+              <baseType>
+                <derived name="ST_IolParamDef" />
+              </baseType>
+            </array>
+          </type>
+          <initialValue>
+            <arrayValue>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'SP1'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="60" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U16" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="5" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="200" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="100" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="'cm'" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'Logic'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="61" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U8" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'Limit'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="64" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U32" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RO" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="'cm'" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'Align'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="69" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U8" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RO" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="100" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="'%'" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'Laser'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="80" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U8" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'Display'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="96" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U8" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="2" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'KeyLock'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="100" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U8" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="1" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'dFO'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="74" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U16" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="2000" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'dS'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="76" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U16" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="2000" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="sName">
+                    <simpleValue value="'dr'" />
+                  </value>
+                  <value member="uiIndex">
+                    <simpleValue value="78" />
+                  </value>
+                  <value member="usiSubindex">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolDataType.U16" />
+                  </value>
+                  <value member="eAccess">
+                    <simpleValue value="E_IolAccess.RW" />
+                  </value>
+                  <value member="diMin">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="diMax">
+                    <simpleValue value="2000" />
+                  </value>
+                  <value member="diDefault">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="sUnit">
+                    <simpleValue value="''" />
+                  </value>
+                  <value member="xInReadAll">
+                    <simpleValue value="TRUE" />
+                  </value>
+                </structValue>
+              </value>
+            </arrayValue>
+          </initialValue>
+        </variable>
+        <variable name="uiIDX_SYS_CMD">
+          <type>
+            <UINT />
+          </type>
+          <initialValue>
+            <simpleValue value="2" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- System Command (index 2, UINT8, write only) ---</xhtml>
+          </documentation>
+        </variable>
+        <variable name="usiSC_FACTORY_RESET">
+          <type>
+            <USINT />
+          </type>
+          <initialValue>
+            <simpleValue value="130" />
+          </initialValue>
+        </variable>
+        <variable name="usiSC_TEST_EVT1_ON">
+          <type>
+            <USINT />
+          </type>
+          <initialValue>
+            <simpleValue value="240" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFE appear</xhtml>
+          </documentation>
+        </variable>
+        <variable name="usiSC_TEST_EVT1_OFF">
+          <type>
+            <USINT />
+          </type>
+          <initialValue>
+            <simpleValue value="241" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFE disappear</xhtml>
+          </documentation>
+        </variable>
+        <variable name="usiSC_TEST_EVT2_ON">
+          <type>
+            <USINT />
+          </type>
+          <initialValue>
+            <simpleValue value="242" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFF appear</xhtml>
+          </documentation>
+        </variable>
+        <variable name="usiSC_TEST_EVT2_OFF">
+          <type>
+            <USINT />
+          </type>
+          <initialValue>
+            <simpleValue value="243" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Test Event 0x8DFF disappear</xhtml>
+          </documentation>
+        </variable>
+        <variable name="uiIDX_EVT_LIST">
+          <type>
+            <UINT />
+          </type>
+          <initialValue>
+            <simpleValue value="37" />
+          </initialValue>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Event (Detailed Device Status index 37: 3 byte/entry; IODD không khai báo -&gt; có thể trả 0x8011) ---</xhtml>
+          </documentation>
+        </variable>
+        <variable name="iEVT_COUNT">
+          <type>
+            <INT />
+          </type>
+          <initialValue>
+            <simpleValue value="8" />
+          </initialValue>
+        </variable>
+        <variable name="aEvtDef">
+          <type>
+            <array>
+              <dimension lower="0" upper="7" />
+              <baseType>
+                <derived name="ST_IolEventDef" />
+              </baseType>
+            </array>
+          </type>
+          <initialValue>
+            <arrayValue>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#4220" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'TEMP'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Quá nhiệt thiết bị&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.WARNING" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8CB0" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'nEA'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Cảnh báo: vật quá gần&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.WARNING" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8CB1" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'fAr'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Cảnh báo: vật quá xa&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.WARNING" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8CB4" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'+'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Lỗi: cường độ phản xạ quá lớn&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.ERROR" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8CB5" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'-'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Lỗi: không có vật / tín hiệu&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.ERROR" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8CA4" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'ErP'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Cảnh báo: sai lệch tính hợp lý&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.WARNING" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8DFE" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'TEST1'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Sự kiện thử 1 (System Command 240)&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.NOTIFICATION" />
+                  </value>
+                </structValue>
+              </value>
+              <value>
+                <structValue>
+                  <value member="wCode">
+                    <simpleValue value="16#8DFF" />
+                  </value>
+                  <value member="sName">
+                    <simpleValue value="'TEST2'" />
+                  </value>
+                  <value member="wsText">
+                    <simpleValue value="&quot;Sự kiện thử 2 (System Command 242)&quot;" />
+                  </value>
+                  <value member="eType">
+                    <simpleValue value="E_IolEvtType.NOTIFICATION" />
+                  </value>
+                </structValue>
+              </value>
+            </arrayValue>
+          </initialValue>
+        </variable>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">{attribute 'qualified_only'}
+// Bảng hằng O5D150 lấy từ IODD ifm-000174-20210526-IODD1.1.xml (vendor 310, device 372)
+VAR_GLOBAL CONSTANT
+    uiPDIN_LEN   : UINT := 2;
+    stPdLayout   : ST_O5D150_PdLayout := (usiOut1Bit := 0, usiDistBitOffset := 4, wDistMask := 16#0FFF,
+                                          uiDistMin := 5, uiDistMax := 200, rGradient := 0.01);
+
+    iPARAM_COUNT : INT := 10;   // = số phần tử E_O5D150_Param
+    aParamDef    : ARRAY[0..9] OF ST_IolParamDef := [
+        (sName := 'SP1',     uiIndex := 60,  usiSubindex := 1, eType := E_IolDataType.U16, eAccess := E_IolAccess.RW, diMin := 5, diMax := 200,  diDefault := 100, sUnit := 'cm', xInReadAll := TRUE),
+        (sName := 'Logic',   uiIndex := 61,  usiSubindex := 1, eType := E_IolDataType.U8,  eAccess := E_IolAccess.RW, diMin := 0, diMax := 1,    diDefault := 0,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'Limit',   uiIndex := 64,  usiSubindex := 0, eType := E_IolDataType.U32, eAccess := E_IolAccess.RO, diMin := 0, diMax := 0,    diDefault := 0,   sUnit := 'cm', xInReadAll := TRUE),
+        (sName := 'Align',   uiIndex := 69,  usiSubindex := 0, eType := E_IolDataType.U8,  eAccess := E_IolAccess.RO, diMin := 0, diMax := 100,  diDefault := 0,   sUnit := '%',  xInReadAll := TRUE),
+        (sName := 'Laser',   uiIndex := 80,  usiSubindex := 0, eType := E_IolDataType.U8,  eAccess := E_IolAccess.RW, diMin := 0, diMax := 1,    diDefault := 1,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'Display', uiIndex := 96,  usiSubindex := 0, eType := E_IolDataType.U8,  eAccess := E_IolAccess.RW, diMin := 0, diMax := 2,    diDefault := 1,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'KeyLock', uiIndex := 100, usiSubindex := 0, eType := E_IolDataType.U8,  eAccess := E_IolAccess.RW, diMin := 0, diMax := 1,    diDefault := 1,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'dFO',     uiIndex := 74,  usiSubindex := 0, eType := E_IolDataType.U16, eAccess := E_IolAccess.RW, diMin := 0, diMax := 2000, diDefault := 0,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'dS',      uiIndex := 76,  usiSubindex := 0, eType := E_IolDataType.U16, eAccess := E_IolAccess.RW, diMin := 0, diMax := 2000, diDefault := 0,   sUnit := '',   xInReadAll := TRUE),
+        (sName := 'dr',      uiIndex := 78,  usiSubindex := 0, eType := E_IolDataType.U16, eAccess := E_IolAccess.RW, diMin := 0, diMax := 2000, diDefault := 0,   sUnit := '',   xInReadAll := TRUE)
+    ];
+
+    // --- System Command (index 2, UINT8, write only) ---
+    uiIDX_SYS_CMD        : UINT  := 2;
+    usiSC_FACTORY_RESET  : USINT := 130;
+    usiSC_TEST_EVT1_ON   : USINT := 240;   // Test Event 0x8DFE appear
+    usiSC_TEST_EVT1_OFF  : USINT := 241;   // Test Event 0x8DFE disappear
+    usiSC_TEST_EVT2_ON   : USINT := 242;   // Test Event 0x8DFF appear
+    usiSC_TEST_EVT2_OFF  : USINT := 243;   // Test Event 0x8DFF disappear
+
+    // --- Event (Detailed Device Status index 37: 3 byte/entry; IODD không khai báo -&gt; có thể trả 0x8011) ---
+    uiIDX_EVT_LIST : UINT := 37;
+    iEVT_COUNT     : INT  := 8;
+    aEvtDef        : ARRAY[0..7] OF ST_IolEventDef := [
+        (wCode := 16#4220, sName := 'TEMP', wsText := "Quá nhiệt thiết bị",                 eType := E_IolEvtType.WARNING),
+        (wCode := 16#8CB0, sName := 'nEA',  wsText := "Cảnh báo: vật quá gần",              eType := E_IolEvtType.WARNING),
+        (wCode := 16#8CB1, sName := 'fAr',  wsText := "Cảnh báo: vật quá xa",               eType := E_IolEvtType.WARNING),
+        (wCode := 16#8CB4, sName := '+',    wsText := "Lỗi: cường độ phản xạ quá lớn",     eType := E_IolEvtType.ERROR),
+        (wCode := 16#8CB5, sName := '-',    wsText := "Lỗi: không có vật / tín hiệu",       eType := E_IolEvtType.ERROR),
+        (wCode := 16#8CA4, sName := 'ErP',  wsText := "Cảnh báo: sai lệch tính hợp lý",     eType := E_IolEvtType.WARNING),
+        (wCode := 16#8DFE, sName := 'TEST1', wsText := "Sự kiện thử 1 (System Command 240)", eType := E_IolEvtType.NOTIFICATION),
+        (wCode := 16#8DFF, sName := 'TEST2', wsText := "Sự kiện thử 2 (System Command 242)", eType := E_IolEvtType.NOTIFICATION)
+    ];
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a6004dfc-5d7c-46db-9ec7-f797e371c0b1</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Bảng hằng O5D150 lấy từ IODD ifm-000174-20210526-IODD1.1.xml (vendor 310, device 372)</xhtml>
+        </documentation>
+      </globalVars>
+    </data>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="O5D150">
+            <Object Name="GVL_O5D150_Def" ObjectId="a6004dfc-5d7c-46db-9ec7-f797e371c0b1" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

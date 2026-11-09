@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:08.4592076" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="F_IolSetR32BE" pouType="function">
+        <interface>
+          <returnType>
+            <BOOL />
+          </returnType>
+          <inputVars>
+            <variable name="pBuf">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="uiOff">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="rVal">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi REAL dạng Float32T big-endian
+FUNCTION F_IolSetR32BE : BOOL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+    rVal  : REAL;
+END_VAR
+VAR
+    pDw : POINTER TO DWORD;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <localVars>
+            <variable name="pDw">
+              <type>
+                <pointer>
+                  <baseType>
+                    <DWORD />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi REAL dạng Float32T big-endian
+FUNCTION F_IolSetR32BE : BOOL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+    rVal  : REAL;
+END_VAR
+VAR
+    pDw : POINTER TO DWORD;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Ghi REAL dạng Float32T big-endian</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">pDw := ADR(rVal);
+F_IolSetR32BE := F_IolSetU32BE(pBuf, uiOff, pDw^);
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi REAL dạng Float32T big-endian
+FUNCTION F_IolSetR32BE : BOOL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+    rVal  : REAL;
+END_VAR
+VAR
+    pDw : POINTER TO DWORD;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>56613822-feef-4aad-b625-d3c4f99b4fe3</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="F_IolSetR32BE" ObjectId="56613822-feef-4aad-b625-d3c4f99b4fe3" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:34:52.1459555" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="ST_IolParamDef">
+        <baseType>
+          <struct>
+            <variable name="sName">
+              <type>
+                <string length="24" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> tên theo IODD</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiIndex">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="usiSubindex">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 = cả index</xhtml>
+              </documentation>
+            </variable>
+            <variable name="eType">
+              <type>
+                <derived name="E_IolDataType" />
+              </type>
+            </variable>
+            <variable name="eAccess">
+              <type>
+                <derived name="E_IolAccess" />
+              </type>
+            </variable>
+            <variable name="diMin">
+              <type>
+                <DINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dải hợp lệ khi ghi (raw = đơn vị kỹ thuật)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="diMax">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diDefault">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="sUnit">
+              <type>
+                <string length="8" />
+              </type>
+            </variable>
+            <variable name="xInReadAll">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> có đọc trong ReadAll không</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Định nghĩa 1 tham số lấy từ IODD (bảng hằng trong GVL_&lt;Model&gt;_Def)
+TYPE ST_IolParamDef :
+STRUCT
+    sName       : STRING(24);                  // tên theo IODD
+    uiIndex     : UINT;
+    usiSubindex : USINT;                       // 0 = cả index
+    eType       : E_IolDataType;
+    eAccess     : E_IolAccess;
+    diMin       : DINT;                        // dải hợp lệ khi ghi (raw = đơn vị kỹ thuật)
+    diMax       : DINT;
+    diDefault   : DINT;
+    sUnit       : STRING(8);
+    xInReadAll  : BOOL := TRUE;                // có đọc trong ReadAll không
+END_STRUCT
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>213a231f-d9f6-408b-97be-da7812475646</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Định nghĩa 1 tham số lấy từ IODD (bảng hằng trong GVL_&lt;Model&gt;_Def)</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="ST_IolParamDef" ObjectId="213a231f-d9f6-408b-97be-da7812475646" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

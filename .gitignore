@@ -1,0 +1,11 @@
+﻿# CODESYS build/cache artifacts
+*.bootinfo
+*.bootinfo_guids
+*.compileinfo
+*.precompilecache
+*.opt
+Application.app
+Application.crc
+Archive.prj
+*.bak
+*~

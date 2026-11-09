@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.0469291" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="E_O5D150_Param">
+        <baseType>
+          <enum>
+            <values>
+              <value name="SP1" value="0" />
+              <value name="CFG_LOGIC" value="1" />
+              <value name="LIMITS" value="2" />
+              <value name="ALIGN" value="3" />
+              <value name="LASER" value="4" />
+              <value name="DISPLAY" value="5" />
+              <value name="KEYLOCK" value="6" />
+              <value name="DFO" value="7" />
+              <value name="DS" value="8" />
+              <value name="DR" value="9" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>SP1</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 60 sub 1</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>CFG_LOGIC</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 61 sub 1</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>LIMITS</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 64 (min, max) - không đặt tên LIMIT vì trùng hàm chuẩn</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ALIGN</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 69</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>LASER</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 80</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DISPLAY</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 96</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>KEYLOCK</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 100</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DFO</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 74</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DS</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 76</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DR</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> index 78</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">{attribute 'qualified_only'}
+// Vị trí tham số trong bảng GVL_O5D150_Def.aParamDef (không phải IO-Link index)
+TYPE E_O5D150_Param :
+(
+    SP1       := 0,   // index 60 sub 1
+    CFG_LOGIC := 1,   // index 61 sub 1
+    LIMITS    := 2,   // index 64 (min, max) - không đặt tên LIMIT vì trùng hàm chuẩn
+    ALIGN     := 3,   // index 69
+    LASER     := 4,   // index 80
+    DISPLAY   := 5,   // index 96
+    KEYLOCK   := 6,   // index 100
+    DFO       := 7,   // index 74
+    DS        := 8,   // index 76
+    DR        := 9    // index 78
+) INT;
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>70f875b6-d725-432e-a5c0-1e9dfe8b122b</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Vị trí tham số trong bảng GVL_O5D150_Def.aParamDef (không phải IO-Link index)</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="O5D150">
+            <Object Name="E_O5D150_Param" ObjectId="70f875b6-d725-432e-a5c0-1e9dfe8b122b" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

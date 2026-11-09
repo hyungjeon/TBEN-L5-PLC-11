@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:06.9598574" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="ST_IolIdent">
+        <baseType>
+          <struct>
+            <variable name="sVendorName">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 16</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sVendorText">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 17</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sProductName">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 18</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sProductId">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 19</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sProductText">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 20</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sSerialNo">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 21</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sHwRev">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 22</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sFwRev">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 23</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sAppTag">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 24</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Thông tin nhận dạng chuẩn IO-Link (index 16..24)
+TYPE ST_IolIdent :
+STRUCT
+    sVendorName  : STRING(64);   // 16
+    sVendorText  : STRING(64);   // 17
+    sProductName : STRING(64);   // 18
+    sProductId   : STRING(64);   // 19
+    sProductText : STRING(64);   // 20
+    sSerialNo    : STRING(64);   // 21
+    sHwRev       : STRING(64);   // 22
+    sFwRev       : STRING(64);   // 23
+    sAppTag      : STRING(64);   // 24
+END_STRUCT
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a1383824-7143-4524-b667-0b0222f9d45a</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Thông tin nhận dạng chuẩn IO-Link (index 16..24)</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="ST_IolIdent" ObjectId="a1383824-7143-4524-b667-0b0222f9d45a" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

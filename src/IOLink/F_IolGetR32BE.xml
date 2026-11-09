@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:08.2741952" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="F_IolGetR32BE" pouType="function">
+        <interface>
+          <returnType>
+            <REAL />
+          </returnType>
+          <inputVars>
+            <variable name="pBuf">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="uiOff">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc Float32T IO-Link (IEEE754 big-endian): chép bit pattern, không đổi số học
+FUNCTION F_IolGetR32BE : REAL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+END_VAR
+VAR
+    dwTmp : DWORD;
+    pR    : POINTER TO REAL;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <localVars>
+            <variable name="dwTmp">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="pR">
+              <type>
+                <pointer>
+                  <baseType>
+                    <REAL />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc Float32T IO-Link (IEEE754 big-endian): chép bit pattern, không đổi số học
+FUNCTION F_IolGetR32BE : REAL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+END_VAR
+VAR
+    dwTmp : DWORD;
+    pR    : POINTER TO REAL;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đọc Float32T IO-Link (IEEE754 big-endian): chép bit pattern, không đổi số học</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">dwTmp := F_IolGetU32BE(pBuf, uiOff);
+pR := ADR(dwTmp);
+F_IolGetR32BE := pR^;
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc Float32T IO-Link (IEEE754 big-endian): chép bit pattern, không đổi số học
+FUNCTION F_IolGetR32BE : REAL
+VAR_INPUT
+    pBuf  : POINTER TO BYTE;
+    uiOff : UINT;
+END_VAR
+VAR
+    dwTmp : DWORD;
+    pR    : POINTER TO REAL;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>8bc95311-37be-4e1f-80a1-c8a4f7a6109b</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="F_IolGetR32BE" ObjectId="8bc95311-37be-4e1f-80a1-c8a4f7a6109b" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,24 @@
+
+{
+	"UpdateRate": 200,
+	"PlcAddress": "0301.3003",
+	"UseLocalHost": true,
+	"Application": "Application",
+	"StartVisu": "Visu_Main",
+	"BestFit": true,
+	"LogLevel": "INFO",
+	"CommBufferSize": 50000,
+	"HasKeyboard": false,
+	"TouchHandlingActive": false,
+	"HandleTouchEvents": true,
+	"ScaleTypeIsotropic": true,
+	"BestFitForDialogs": true,
+	"RuntimeVersion": "3.5.18.0",
+	"LoginVisu": "",
+	"FillBackground": true,
+	"LoginVisuTexts": "",
+	"LoginVisuErrorTexts": "",
+	"LoginVisuNamespace": "",
+	"LoginVisuDefLang": "",
+    "UseBrowserLanguage": true
+}

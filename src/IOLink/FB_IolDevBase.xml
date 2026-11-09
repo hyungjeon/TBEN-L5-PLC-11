@@ -1,0 +1,2093 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:24.7087173" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_IolDevBase" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="refMaster">
+              <type>
+                <derived name="REFERENCE TO FB_IolMaster" />
+              </type>
+            </variable>
+            <variable name="usiPort">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="bPQI">
+              <type>
+                <BYTE />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Port Qualifier từ GVL_IO</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xWriteEnable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> khoá ghi tham số / System Command (Maintenance)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xAutoReadOnConnect">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> tự đọc Ident + ReadAll khi PD chuyển hợp lệ</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xResetErr">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> sườn lên: xoá lỗi gần nhất</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lớp cơ sở cho mọi device IO-Link: giải mã PQI, trình tự đọc/ghi tham số theo bảng IODD của lớp con,
+// đọc Ident 16..24, kênh ISDU tự do cho lớp con. Lớp con override: ParamCount, GetParamDef, GetValPtr,
+// OnParamDone, OnCustomDone và gọi SUPER^() trong thân.
+FUNCTION_BLOCK FB_IolDevBase
+VAR_INPUT
+    refMaster          : REFERENCE TO FB_IolMaster;
+    usiPort            : USINT;
+    bPQI               : BYTE;                  // Port Qualifier từ GVL_IO
+    xWriteEnable       : BOOL;                  // khoá ghi tham số / System Command (Maintenance)
+    xAutoReadOnConnect : BOOL := TRUE;          // tự đọc Ident + ReadAll khi PD chuyển hợp lệ
+    xResetErr          : BOOL;                  // sườn lên: xoá lỗi gần nhất
+END_VAR
+VAR_OUTPUT
+    stDiag         : ST_IolPortDiag;
+    xPdValid       : BOOL;                      // PQ AND DA
+    xBusy          : BOOL;                      // đang chạy hoặc còn việc chờ
+    xLastError     : BOOL;                      // lỗi gần nhất, giữ tới xResetErr
+    eLastErrSrc    : E_IolErrSource;
+    uiLastDevErr   : UINT;
+    wsLastErr      : WSTRING(80);
+    stIdent        : ST_IolIdent;
+    udiJobCount    : UDINT;
+    udiJobErrCount : UDINT;
+END_VAR
+VAR
+    fbCall      : FB_IolCall;                   // instance riêng mỗi device
+    eSeq        : E_IolDevSeq;
+    eJob        : E_IolDevJob;
+    iJobParam   : INT;
+    uiJobIndex  : UINT;
+    usiJobSub   : USINT;
+    eJobService : E_IolService := E_IolService.READ;
+    uiJobLen    : UINT;
+    xCallExec   : BOOL;
+    abBuf       : ARRAY[0..GVL_IolConst.uiMAX_DATA - 1] OF BYTE;   // dữ liệu ghi / nhận của việc đang chạy
+    axPendRead  : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    axPendWrite : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    wPendIdent  : WORD;                         // bit n = cần đọc index 16 + n
+    xPendCustom : BOOL;
+    stCustom    : ST_IolRequest;
+    rtPdValid   : R_TRIG;
+    rtResetErr  : R_TRIG;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <outputVars>
+            <variable name="stDiag">
+              <type>
+                <derived name="ST_IolPortDiag" />
+              </type>
+            </variable>
+            <variable name="xPdValid">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> PQ AND DA</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xBusy">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> đang chạy hoặc còn việc chờ</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xLastError">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> lỗi gần nhất, giữ tới xResetErr</xhtml>
+              </documentation>
+            </variable>
+            <variable name="eLastErrSrc">
+              <type>
+                <derived name="E_IolErrSource" />
+              </type>
+            </variable>
+            <variable name="uiLastDevErr">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="wsLastErr">
+              <type>
+                <wstring length="80" />
+              </type>
+            </variable>
+            <variable name="stIdent">
+              <type>
+                <derived name="ST_IolIdent" />
+              </type>
+            </variable>
+            <variable name="udiJobCount">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="udiJobErrCount">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lớp cơ sở cho mọi device IO-Link: giải mã PQI, trình tự đọc/ghi tham số theo bảng IODD của lớp con,
+// đọc Ident 16..24, kênh ISDU tự do cho lớp con. Lớp con override: ParamCount, GetParamDef, GetValPtr,
+// OnParamDone, OnCustomDone và gọi SUPER^() trong thân.
+FUNCTION_BLOCK FB_IolDevBase
+VAR_INPUT
+    refMaster          : REFERENCE TO FB_IolMaster;
+    usiPort            : USINT;
+    bPQI               : BYTE;                  // Port Qualifier từ GVL_IO
+    xWriteEnable       : BOOL;                  // khoá ghi tham số / System Command (Maintenance)
+    xAutoReadOnConnect : BOOL := TRUE;          // tự đọc Ident + ReadAll khi PD chuyển hợp lệ
+    xResetErr          : BOOL;                  // sườn lên: xoá lỗi gần nhất
+END_VAR
+VAR_OUTPUT
+    stDiag         : ST_IolPortDiag;
+    xPdValid       : BOOL;                      // PQ AND DA
+    xBusy          : BOOL;                      // đang chạy hoặc còn việc chờ
+    xLastError     : BOOL;                      // lỗi gần nhất, giữ tới xResetErr
+    eLastErrSrc    : E_IolErrSource;
+    uiLastDevErr   : UINT;
+    wsLastErr      : WSTRING(80);
+    stIdent        : ST_IolIdent;
+    udiJobCount    : UDINT;
+    udiJobErrCount : UDINT;
+END_VAR
+VAR
+    fbCall      : FB_IolCall;                   // instance riêng mỗi device
+    eSeq        : E_IolDevSeq;
+    eJob        : E_IolDevJob;
+    iJobParam   : INT;
+    uiJobIndex  : UINT;
+    usiJobSub   : USINT;
+    eJobService : E_IolService := E_IolService.READ;
+    uiJobLen    : UINT;
+    xCallExec   : BOOL;
+    abBuf       : ARRAY[0..GVL_IolConst.uiMAX_DATA - 1] OF BYTE;   // dữ liệu ghi / nhận của việc đang chạy
+    axPendRead  : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    axPendWrite : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    wPendIdent  : WORD;                         // bit n = cần đọc index 16 + n
+    xPendCustom : BOOL;
+    stCustom    : ST_IolRequest;
+    rtPdValid   : R_TRIG;
+    rtResetErr  : R_TRIG;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </outputVars>
+          <localVars>
+            <variable name="fbCall">
+              <type>
+                <derived name="FB_IolCall" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> instance riêng mỗi device</xhtml>
+              </documentation>
+            </variable>
+            <variable name="eSeq">
+              <type>
+                <derived name="E_IolDevSeq" />
+              </type>
+            </variable>
+            <variable name="eJob">
+              <type>
+                <derived name="E_IolDevJob" />
+              </type>
+            </variable>
+            <variable name="iJobParam">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="uiJobIndex">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="usiJobSub">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="eJobService">
+              <type>
+                <derived name="E_IolService" />
+              </type>
+              <initialValue>
+                <simpleValue value="E_IolService.READ" />
+              </initialValue>
+            </variable>
+            <variable name="uiJobLen">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="xCallExec">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="abBuf">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.uiMAX_DATA - 1)" />
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dữ liệu ghi / nhận của việc đang chạy</xhtml>
+              </documentation>
+            </variable>
+            <variable name="axPendRead">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.iMAX_PARAM - 1)" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="axPendWrite">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_IolConst.iMAX_PARAM - 1)" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="wPendIdent">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> bit n = cần đọc index 16 + n</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xPendCustom">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="stCustom">
+              <type>
+                <derived name="ST_IolRequest" />
+              </type>
+            </variable>
+            <variable name="rtPdValid">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="rtResetErr">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lớp cơ sở cho mọi device IO-Link: giải mã PQI, trình tự đọc/ghi tham số theo bảng IODD của lớp con,
+// đọc Ident 16..24, kênh ISDU tự do cho lớp con. Lớp con override: ParamCount, GetParamDef, GetValPtr,
+// OnParamDone, OnCustomDone và gọi SUPER^() trong thân.
+FUNCTION_BLOCK FB_IolDevBase
+VAR_INPUT
+    refMaster          : REFERENCE TO FB_IolMaster;
+    usiPort            : USINT;
+    bPQI               : BYTE;                  // Port Qualifier từ GVL_IO
+    xWriteEnable       : BOOL;                  // khoá ghi tham số / System Command (Maintenance)
+    xAutoReadOnConnect : BOOL := TRUE;          // tự đọc Ident + ReadAll khi PD chuyển hợp lệ
+    xResetErr          : BOOL;                  // sườn lên: xoá lỗi gần nhất
+END_VAR
+VAR_OUTPUT
+    stDiag         : ST_IolPortDiag;
+    xPdValid       : BOOL;                      // PQ AND DA
+    xBusy          : BOOL;                      // đang chạy hoặc còn việc chờ
+    xLastError     : BOOL;                      // lỗi gần nhất, giữ tới xResetErr
+    eLastErrSrc    : E_IolErrSource;
+    uiLastDevErr   : UINT;
+    wsLastErr      : WSTRING(80);
+    stIdent        : ST_IolIdent;
+    udiJobCount    : UDINT;
+    udiJobErrCount : UDINT;
+END_VAR
+VAR
+    fbCall      : FB_IolCall;                   // instance riêng mỗi device
+    eSeq        : E_IolDevSeq;
+    eJob        : E_IolDevJob;
+    iJobParam   : INT;
+    uiJobIndex  : UINT;
+    usiJobSub   : USINT;
+    eJobService : E_IolService := E_IolService.READ;
+    uiJobLen    : UINT;
+    xCallExec   : BOOL;
+    abBuf       : ARRAY[0..GVL_IolConst.uiMAX_DATA - 1] OF BYTE;   // dữ liệu ghi / nhận của việc đang chạy
+    axPendRead  : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    axPendWrite : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    wPendIdent  : WORD;                         // bit n = cần đọc index 16 + n
+    xPendCustom : BOOL;
+    stCustom    : ST_IolRequest;
+    rtPdValid   : R_TRIG;
+    rtResetErr  : R_TRIG;
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </localVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Lớp cơ sở cho mọi device IO-Link: giải mã PQI, trình tự đọc/ghi tham số theo bảng IODD của lớp con,
+ đọc Ident 16..24, kênh ISDU tự do cho lớp con. Lớp con override: ParamCount, GetParamDef, GetValPtr,
+ OnParamDone, OnCustomDone và gọi SUPER^() trong thân.</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// ---------- 1. Port Qualifier (bit theo GSDML AL1100) ----------
+stDiag.bPQI := bPQI;
+stDiag.xDI4 := bPQI.0;
+stDiag.xDI2 := bPQI.1;
+stDiag.xNP  := bPQI.2;
+stDiag.xSV  := bPQI.3;
+stDiag.xDA  := bPQI.4;
+stDiag.xDC  := bPQI.5;
+stDiag.xDE  := bPQI.6;
+stDiag.xPQ  := bPQI.7;
+xPdValid := stDiag.xPQ AND stDiag.xDA;
+
+rtPdValid(CLK := xPdValid);
+IF rtPdValid.Q AND xAutoReadOnConnect THEN
+    RequestReadIdent();
+    RequestReadAll();
+END_IF
+
+rtResetErr(CLK := xResetErr);
+IF rtResetErr.Q THEN
+    xLastError   := FALSE;
+    eLastErrSrc  := E_IolErrSource.NONE;
+    uiLastDevErr := 0;
+    wsLastErr    := "";
+END_IF
+
+// ---------- 2. Port không có thiết bị: huỷ việc chờ ngay, không đợi timeout ----------
+IF NOT stDiag.xDA AND eSeq = E_IolDevSeq.IDLE AND HasPending() THEN
+    DropAll();
+END_IF
+
+// ---------- 3. Client IOL_CALL: gọi đúng 1 lần mỗi chu kỳ ----------
+IF __ISVALIDREF(refMaster) THEN
+    fbCall.refMaster REF= refMaster;
+END_IF
+IF eJobService = E_IolService.WRITE THEN
+    fbCall(xExecute := xCallExec, usiPort := usiPort, eService := eJobService, uiIndex := uiJobIndex,
+           usiSubindex := usiJobSub, pData := ADR(abBuf), uiDataLen := uiJobLen);
+ELSE
+    fbCall(xExecute := xCallExec, usiPort := usiPort, eService := eJobService, uiIndex := uiJobIndex,
+           usiSubindex := usiJobSub, pData := ADR(abBuf), uiDataLen := GVL_IolConst.uiMAX_DATA);
+END_IF
+
+// ---------- 4. Trình tự việc ----------
+CASE eSeq OF
+    E_IolDevSeq.IDLE:
+        xCallExec := FALSE;
+        IF SelectJob() THEN
+            xCallExec := TRUE;
+            eSeq := E_IolDevSeq.RUN;
+        END_IF
+
+    E_IolDevSeq.RUN:
+        IF fbCall.xDone OR fbCall.xError THEN
+            xCallExec := FALSE;
+            JobFinished(xErr := fbCall.xError);
+            eSeq := E_IolDevSeq.RELEASE;
+        END_IF
+
+    E_IolDevSeq.RELEASE:
+        // chờ FB_IolCall về IDLE để sườn Execute kế tiếp chắc chắn được nhận
+        IF NOT fbCall.xDone AND NOT fbCall.xError AND NOT fbCall.xBusy THEN
+            eJob := E_IolDevJob.NONE;
+            eSeq := E_IolDevSeq.IDLE;
+        END_IF
+END_CASE
+
+xBusy := (eSeq &lt;&gt; E_IolDevSeq.IDLE) OR HasPending();
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ParamCount" ObjectId="6582643d-f2a8-4d15-b023-118c5e21f5b4">
+              <interface>
+                <returnType>
+                  <INT />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Số tham số trong bảng IODD của device - lớp con override</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">ParamCount := 0;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Số tham số trong bảng IODD của device - lớp con override
+METHOD ParamCount : INT
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetParamDef" ObjectId="cfe7ff5d-82b7-420d-ba5a-d74a51960969">
+              <interface>
+                <returnType>
+                  <derived name="ST_IolParamDef" />
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Định nghĩa tham số thứ iParam - lớp con override
+METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stEmpty">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Định nghĩa tham số thứ iParam - lớp con override
+METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Định nghĩa tham số thứ iParam - lớp con override</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetParamDef := stEmpty;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Định nghĩa tham số thứ iParam - lớp con override
+METHOD GetParamDef : ST_IolParamDef
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stEmpty : ST_IolParamDef;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetValPtr" ObjectId="ac45532d-dbec-420a-b6d0-63f993cdd4e2">
+              <interface>
+                <returnType>
+                  <pointer>
+                    <baseType>
+                      <derived name="ST_IolParamVal" />
+                    </baseType>
+                  </pointer>
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Con trỏ tới giá trị runtime của tham số iParam (mảng nằm ở lớp con); 0 = không có
+METHOD GetValPtr : POINTER TO ST_IolParamVal
+VAR_INPUT
+    iParam : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Con trỏ tới giá trị runtime của tham số iParam (mảng nằm ở lớp con); 0 = không có</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetValPtr := 0;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Con trỏ tới giá trị runtime của tham số iParam (mảng nằm ở lớp con); 0 = không có
+METHOD GetValPtr : POINTER TO ST_IolParamVal
+VAR_INPUT
+    iParam : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnParamDone" ObjectId="348356ed-4be5-4d80-be43-2f24b5eb752e">
+              <interface>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hook sau khi đọc xong 1 tham số (lớp con tách record nhiều trường...)
+METHOD OnParamDone
+VAR_INPUT
+    iParam : INT;
+    xErr   : BOOL;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Hook sau khi đọc xong 1 tham số (lớp con tách record nhiều trường...)</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hook sau khi đọc xong 1 tham số (lớp con tách record nhiều trường...)
+METHOD OnParamDone
+VAR_INPUT
+    iParam : INT;
+    xErr   : BOOL;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnCustomDone" ObjectId="e4119412-ac6e-4c0c-83bf-51be904ea2ad">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="eService">
+                    <type>
+                      <derived name="E_IolService" />
+                    </type>
+                  </variable>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="uiDevErr">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hook khi việc ISDU tự do kết thúc; dữ liệu đọc nằm trong abBuf[0..uiLen-1].
+// Trả TRUE để KHÔNG đẩy lỗi lên wsLastErr (lớp con tự xử lý, vd index không hỗ trợ).
+METHOD OnCustomDone : BOOL
+VAR_INPUT
+    uiIndex  : UINT;
+    eService : E_IolService;
+    xErr     : BOOL;
+    uiDevErr : UINT;
+    uiLen    : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Hook khi việc ISDU tự do kết thúc; dữ liệu đọc nằm trong abBuf[0..uiLen-1].
+ Trả TRUE để KHÔNG đẩy lỗi lên wsLastErr (lớp con tự xử lý, vd index không hỗ trợ).</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">OnCustomDone := FALSE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Hook khi việc ISDU tự do kết thúc; dữ liệu đọc nằm trong abBuf[0..uiLen-1].
+// Trả TRUE để KHÔNG đẩy lỗi lên wsLastErr (lớp con tự xử lý, vd index không hỗ trợ).
+METHOD OnCustomDone : BOOL
+VAR_INPUT
+    uiIndex  : UINT;
+    eService : E_IolService;
+    xErr     : BOOL;
+    uiDevErr : UINT;
+    uiLen    : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestReadAll" ObjectId="609f05b9-29f4-4a47-abed-a74bd4e8d95d">
+              <interface>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc mọi tham số có xInReadAll và không phải write-only
+METHOD RequestReadAll
+VAR
+    i     : INT;
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đánh dấu đọc mọi tham số có xInReadAll và không phải write-only</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FOR i := 0 TO MIN(THIS^.ParamCount(), GVL_IolConst.iMAX_PARAM) - 1 DO
+    stDef := THIS^.GetParamDef(i);
+    IF stDef.xInReadAll AND stDef.eAccess &lt;&gt; E_IolAccess.WO THEN
+        axPendRead[i] := TRUE;
+    END_IF
+END_FOR
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc mọi tham số có xInReadAll và không phải write-only
+METHOD RequestReadAll
+VAR
+    i     : INT;
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestReadIdent" ObjectId="84716bc1-95bf-4585-9e7d-2a1a13096df3">
+              <interface>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đánh dấu đọc Ident index 16..24</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">wPendIdent := 16#01FF;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc Ident index 16..24
+METHOD RequestReadIdent
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestRead" ObjectId="2c32f4cc-df68-475f-af0c-42957e624fcb">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc 1 tham số; FALSE nếu iParam sai hoặc tham số write-only
+METHOD RequestRead : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc 1 tham số; FALSE nếu iParam sai hoặc tham số write-only
+METHOD RequestRead : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đánh dấu đọc 1 tham số; FALSE nếu iParam sai hoặc tham số write-only</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">RequestRead := FALSE;
+IF iParam &lt; 0 OR iParam &gt;= MIN(THIS^.ParamCount(), GVL_IolConst.iMAX_PARAM) THEN
+    RETURN;
+END_IF
+stDef := THIS^.GetParamDef(iParam);
+IF stDef.eAccess = E_IolAccess.WO THEN
+    RETURN;
+END_IF
+axPendRead[iParam] := TRUE;
+RequestRead := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đánh dấu đọc 1 tham số; FALSE nếu iParam sai hoặc tham số write-only
+METHOD RequestRead : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestWrite" ObjectId="edceaec8-57af-4aa8-8200-262c6d433fc5">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="diValue">
+                    <type>
+                      <DINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Yêu cầu ghi 1 tham số. Chặn trước khi gửi: khoá ghi (xWriteEnable), tham số read-only, ngoài dải IODD.
+// Ghi xong tự đọc lại để xác nhận.
+METHOD RequestWrite : BOOL
+VAR_INPUT
+    iParam  : INT;
+    diValue : DINT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <variable name="pVal">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="ST_IolParamVal" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Yêu cầu ghi 1 tham số. Chặn trước khi gửi: khoá ghi (xWriteEnable), tham số read-only, ngoài dải IODD.
+// Ghi xong tự đọc lại để xác nhận.
+METHOD RequestWrite : BOOL
+VAR_INPUT
+    iParam  : INT;
+    diValue : DINT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Yêu cầu ghi 1 tham số. Chặn trước khi gửi: khoá ghi (xWriteEnable), tham số read-only, ngoài dải IODD.
+ Ghi xong tự đọc lại để xác nhận.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">RequestWrite := FALSE;
+IF iParam &lt; 0 OR iParam &gt;= MIN(THIS^.ParamCount(), GVL_IolConst.iMAX_PARAM) THEN
+    SetLocalErr(E_IolErrSource.PARAM);
+    RETURN;
+END_IF
+stDef := THIS^.GetParamDef(iParam);
+pVal  := THIS^.GetValPtr(iParam);
+IF pVal = 0 OR stDef.eAccess = E_IolAccess.RO THEN
+    SetLocalErr(E_IolErrSource.PARAM);
+    RETURN;
+END_IF
+IF NOT xWriteEnable THEN
+    SetLocalErr(E_IolErrSource.WRITE_LOCKED);
+    RETURN;
+END_IF
+IF diValue &lt; stDef.diMin OR diValue &gt; stDef.diMax THEN
+    pVal^.uiErr := 16#FF00 OR INT_TO_UINT(E_IolErrSource.RANGE);
+    SetLocalErr(E_IolErrSource.RANGE);
+    RETURN;
+END_IF
+pVal^.diSet  := diValue;
+pVal^.xDirty := TRUE;
+axPendWrite[iParam] := TRUE;
+RequestWrite := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Yêu cầu ghi 1 tham số. Chặn trước khi gửi: khoá ghi (xWriteEnable), tham số read-only, ngoài dải IODD.
+// Ghi xong tự đọc lại để xác nhận.
+METHOD RequestWrite : BOOL
+VAR_INPUT
+    iParam  : INT;
+    diValue : DINT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestCustom" ObjectId="f3f8ad37-6571-4360-a8b1-c5010b7cab61">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="eService">
+                    <type>
+                      <derived name="E_IolService" />
+                    </type>
+                  </variable>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="usiSubindex">
+                    <type>
+                      <USINT />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> chỉ dùng khi WRITE</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> số byte ghi (READ bỏ qua)</xhtml>
+                    </documentation>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// ISDU tự do (System Command, event list...). 1 việc chờ tại 1 thời điểm; FALSE nếu đang có việc chờ,
+// ghi bị khoá hoặc độ dài sai. Kết quả báo qua OnCustomDone.
+METHOD RequestCustom : BOOL
+VAR_INPUT
+    eService    : E_IolService;
+    uiIndex     : UINT;
+    usiSubindex : USINT;
+    pData       : POINTER TO BYTE;     // chỉ dùng khi WRITE
+    uiLen       : UINT;                // số byte ghi (READ bỏ qua)
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// ISDU tự do (System Command, event list...). 1 việc chờ tại 1 thời điểm; FALSE nếu đang có việc chờ,
+// ghi bị khoá hoặc độ dài sai. Kết quả báo qua OnCustomDone.
+METHOD RequestCustom : BOOL
+VAR_INPUT
+    eService    : E_IolService;
+    uiIndex     : UINT;
+    usiSubindex : USINT;
+    pData       : POINTER TO BYTE;     // chỉ dùng khi WRITE
+    uiLen       : UINT;                // số byte ghi (READ bỏ qua)
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> ISDU tự do (System Command, event list...). 1 việc chờ tại 1 thời điểm; FALSE nếu đang có việc chờ,
+ ghi bị khoá hoặc độ dài sai. Kết quả báo qua OnCustomDone.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">RequestCustom := FALSE;
+IF xPendCustom THEN
+    RETURN;
+END_IF
+IF eService = E_IolService.WRITE THEN
+    IF NOT xWriteEnable THEN
+        SetLocalErr(E_IolErrSource.WRITE_LOCKED);
+        RETURN;
+    END_IF
+    IF pData = 0 OR uiLen = 0 OR uiLen &gt; GVL_IolConst.uiMAX_DATA THEN
+        SetLocalErr(E_IolErrSource.PARAM);
+        RETURN;
+    END_IF
+    FOR i := 0 TO UINT_TO_INT(uiLen) - 1 DO
+        stCustom.abData[i] := pData[i];
+    END_FOR
+    stCustom.uiLen := uiLen;
+ELSE
+    stCustom.uiLen := 0;
+END_IF
+stCustom.usiPort     := usiPort;
+stCustom.eService    := eService;
+stCustom.uiIndex     := uiIndex;
+stCustom.usiSubindex := usiSubindex;
+xPendCustom := TRUE;
+RequestCustom := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// ISDU tự do (System Command, event list...). 1 việc chờ tại 1 thời điểm; FALSE nếu đang có việc chờ,
+// ghi bị khoá hoặc độ dài sai. Kết quả báo qua OnCustomDone.
+METHOD RequestCustom : BOOL
+VAR_INPUT
+    eService    : E_IolService;
+    uiIndex     : UINT;
+    usiSubindex : USINT;
+    pData       : POINTER TO BYTE;     // chỉ dùng khi WRITE
+    uiLen       : UINT;                // số byte ghi (READ bỏ qua)
+END_VAR
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetLocalErr" ObjectId="cc277707-c63c-440a-8bfe-0eafc2578379">
+              <interface>
+                <inputVars>
+                  <variable name="eSrc">
+                    <type>
+                      <derived name="E_IolErrSource" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi lỗi phát sinh trong PLC (không qua ISDU) vào lỗi gần nhất
+METHOD PROTECTED SetLocalErr
+VAR_INPUT
+    eSrc : E_IolErrSource;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Ghi lỗi phát sinh trong PLC (không qua ISDU) vào lỗi gần nhất</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">xLastError   := TRUE;
+eLastErrSrc  := eSrc;
+uiLastDevErr := 0;
+wsLastErr    := F_IolErrText(eSrc, 0, 0, 0);
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi lỗi phát sinh trong PLC (không qua ISDU) vào lỗi gần nhất
+METHOD PROTECTED SetLocalErr
+VAR_INPUT
+    eSrc : E_IolErrSource;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ReportErr" ObjectId="ba195582-35cb-4eb2-95df-c0bff75284dc">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Chép lỗi của lần gọi ISDU vừa xong vào lỗi gần nhất</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">xLastError   := TRUE;
+eLastErrSrc  := fbCall.eErrSource;
+uiLastDevErr := fbCall.uiIolDevErr;
+wsLastErr    := fbCall.wsErrText;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Chép lỗi của lần gọi ISDU vừa xong vào lỗi gần nhất
+METHOD PROTECTED ReportErr
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ErrCode" ObjectId="d3c80b44-05f1-4e2e-971b-76ec8d3175ba">
+              <interface>
+                <returnType>
+                  <UINT />
+                </returnType>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Mã lỗi lưu vào ST_IolParamVal.uiErr: lỗi device 0x80xx, còn lại 0xFF00 + E_IolErrSource</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF fbCall.uiIolDevErr &lt;&gt; 0 THEN
+    ErrCode := fbCall.uiIolDevErr;
+ELSE
+    ErrCode := 16#FF00 OR INT_TO_UINT(fbCall.eErrSource);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Mã lỗi lưu vào ST_IolParamVal.uiErr: lỗi device 0x80xx, còn lại 0xFF00 + E_IolErrSource
+METHOD PROTECTED ErrCode : UINT
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="HasPending" ObjectId="7b7b86be-c866-4d60-9d11-b6cebfc048eb">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Còn việc ISDU nào đang chờ không
+METHOD PROTECTED HasPending : BOOL
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Còn việc ISDU nào đang chờ không</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">HasPending := xPendCustom OR (wPendIdent &lt;&gt; 0);
+FOR i := 0 TO GVL_IolConst.iMAX_PARAM - 1 DO
+    IF axPendRead[i] OR axPendWrite[i] THEN
+        HasPending := TRUE;
+        RETURN;
+    END_IF
+END_FOR
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Còn việc ISDU nào đang chờ không
+METHOD PROTECTED HasPending : BOOL
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="DropAll" ObjectId="6f635089-b44d-47dc-ac67-da8d4b90e2df">
+              <interface>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Huỷ mọi việc chờ khi port không có thiết bị, báo NO_DEVICE thay vì để từng request timeout
+METHOD PROTECTED DropAll
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Huỷ mọi việc chờ khi port không có thiết bị, báo NO_DEVICE thay vì để từng request timeout</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FOR i := 0 TO GVL_IolConst.iMAX_PARAM - 1 DO
+    axPendRead[i]  := FALSE;
+    axPendWrite[i] := FALSE;
+END_FOR
+wPendIdent := 0;
+IF xPendCustom THEN
+    xPendCustom := FALSE;
+    THIS^.OnCustomDone(uiIndex := stCustom.uiIndex, eService := stCustom.eService, xErr := TRUE, uiDevErr := 0, uiLen := 0);
+END_IF
+SetLocalErr(E_IolErrSource.NO_DEVICE);
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Huỷ mọi việc chờ khi port không có thiết bị, báo NO_DEVICE thay vì để từng request timeout
+METHOD PROTECTED DropAll
+VAR
+    i : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SelectJob" ObjectId="ebd27379-91c5-4c3b-a515-5715e411ae8d">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <localVars>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="iN">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Chọn việc tiếp theo theo ưu tiên: tự do (System Command / event) &gt; ghi &gt; đọc tham số &gt; Ident
+METHOD PROTECTED SelectJob : BOOL
+VAR
+    i     : INT;
+    iN    : INT;
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Chọn việc tiếp theo theo ưu tiên: tự do (System Command / event) &gt; ghi &gt; đọc tham số &gt; Ident</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SelectJob := FALSE;
+IF NOT stDiag.xDA THEN
+    RETURN;
+END_IF
+iN := MIN(THIS^.ParamCount(), GVL_IolConst.iMAX_PARAM);
+
+// --- 1. ISDU tự do ---
+IF xPendCustom THEN
+    xPendCustom := FALSE;
+    eJob        := E_IolDevJob.CUSTOM;
+    iJobParam   := -1;
+    uiJobIndex  := stCustom.uiIndex;
+    usiJobSub   := stCustom.usiSubindex;
+    eJobService := stCustom.eService;
+    uiJobLen    := stCustom.uiLen;
+    FOR i := 0 TO UINT_TO_INT(stCustom.uiLen) - 1 DO
+        abBuf[i] := stCustom.abData[i];
+    END_FOR
+    SelectJob := TRUE;
+    RETURN;
+END_IF
+
+// --- 2. Ghi tham số ---
+FOR i := 0 TO iN - 1 DO
+    IF axPendWrite[i] THEN
+        axPendWrite[i] := FALSE;
+        IF PrepareWrite(i) THEN
+            eJob := E_IolDevJob.PARAM_WR;
+            SelectJob := TRUE;
+            RETURN;
+        END_IF
+    END_IF
+END_FOR
+
+// --- 3. Đọc tham số ---
+FOR i := 0 TO iN - 1 DO
+    IF axPendRead[i] THEN
+        axPendRead[i] := FALSE;
+        stDef := THIS^.GetParamDef(i);
+        eJob        := E_IolDevJob.PARAM_RD;
+        iJobParam   := i;
+        uiJobIndex  := stDef.uiIndex;
+        usiJobSub   := stDef.usiSubindex;
+        eJobService := E_IolService.READ;
+        uiJobLen    := 0;
+        SelectJob := TRUE;
+        RETURN;
+    END_IF
+END_FOR
+
+// --- 4. Ident 16..24 ---
+IF wPendIdent &lt;&gt; 0 THEN
+    FOR i := 0 TO 8 DO
+        IF (SHR(wPendIdent, i) AND WORD#1) &lt;&gt; 0 THEN
+            wPendIdent  := wPendIdent AND NOT SHL(WORD#1, i);
+            eJob        := E_IolDevJob.IDENT;
+            iJobParam   := -1;
+            uiJobIndex  := 16 + INT_TO_UINT(i);
+            usiJobSub   := 0;
+            eJobService := E_IolService.READ;
+            uiJobLen    := 0;
+            SelectJob := TRUE;
+            RETURN;
+        END_IF
+    END_FOR
+    wPendIdent := 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Chọn việc tiếp theo theo ưu tiên: tự do (System Command / event) &gt; ghi &gt; đọc tham số &gt; Ident
+METHOD PROTECTED SelectJob : BOOL
+VAR
+    i     : INT;
+    iN    : INT;
+    stDef : ST_IolParamDef;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PrepareWrite" ObjectId="623aad2c-ecde-42b0-bd0c-309c7ab4f615">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Mã hoá diSet của tham số iParam thành byte big-endian trong abBuf; FALSE nếu kiểu không hỗ trợ ghi qua bảng
+METHOD PROTECTED PrepareWrite : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <variable name="pVal">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="ST_IolParamVal" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Mã hoá diSet của tham số iParam thành byte big-endian trong abBuf; FALSE nếu kiểu không hỗ trợ ghi qua bảng
+METHOD PROTECTED PrepareWrite : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Mã hoá diSet của tham số iParam thành byte big-endian trong abBuf; FALSE nếu kiểu không hỗ trợ ghi qua bảng</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">PrepareWrite := FALSE;
+stDef := THIS^.GetParamDef(iParam);
+pVal  := THIS^.GetValPtr(iParam);
+IF pVal = 0 THEN
+    RETURN;
+END_IF
+iJobParam   := iParam;
+uiJobIndex  := stDef.uiIndex;
+usiJobSub   := stDef.usiSubindex;
+eJobService := E_IolService.WRITE;
+CASE stDef.eType OF
+    E_IolDataType.U8, E_IolDataType.I8:
+        abBuf[0] := DINT_TO_BYTE(pVal^.diSet);
+        uiJobLen := 1;
+    E_IolDataType.U16, E_IolDataType.I16:
+        F_IolSetU16BE(ADR(abBuf), 0, DINT_TO_UINT(pVal^.diSet));
+        uiJobLen := 2;
+    E_IolDataType.U32, E_IolDataType.I32:
+        F_IolSetU32BE(ADR(abBuf), 0, DINT_TO_DWORD(pVal^.diSet));
+        uiJobLen := 4;
+ELSE
+    pVal^.xDirty := FALSE;
+    RETURN;
+END_CASE
+PrepareWrite := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Mã hoá diSet của tham số iParam thành byte big-endian trong abBuf; FALSE nếu kiểu không hỗ trợ ghi qua bảng
+METHOD PROTECTED PrepareWrite : BOOL
+VAR_INPUT
+    iParam : INT;
+END_VAR
+VAR
+    stDef : ST_IolParamDef;
+    pVal  : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="DecodeParam" ObjectId="87ee5e0d-727f-4b27-a847-b61c761a6cae">
+              <interface>
+                <inputVars>
+                  <variable name="iParam">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã abBuf (big-endian) thành diRaw của tham số iParam
+METHOD PROTECTED DecodeParam
+VAR_INPUT
+    iParam : INT;
+    uiLen  : UINT;
+END_VAR
+VAR
+    stDef  : ST_IolParamDef;
+    pVal   : POINTER TO ST_IolParamVal;
+    uiNeed : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="stDef">
+                    <type>
+                      <derived name="ST_IolParamDef" />
+                    </type>
+                  </variable>
+                  <variable name="pVal">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="ST_IolParamVal" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="uiNeed">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã abBuf (big-endian) thành diRaw của tham số iParam
+METHOD PROTECTED DecodeParam
+VAR_INPUT
+    iParam : INT;
+    uiLen  : UINT;
+END_VAR
+VAR
+    stDef  : ST_IolParamDef;
+    pVal   : POINTER TO ST_IolParamVal;
+    uiNeed : UINT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giải mã abBuf (big-endian) thành diRaw của tham số iParam</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">stDef := THIS^.GetParamDef(iParam);
+pVal  := THIS^.GetValPtr(iParam);
+IF pVal = 0 THEN
+    RETURN;
+END_IF
+CASE stDef.eType OF
+    E_IolDataType.U8, E_IolDataType.I8:   uiNeed := 1;
+    E_IolDataType.U16, E_IolDataType.I16: uiNeed := 2;
+ELSE
+    uiNeed := 4;
+END_CASE
+IF uiLen &lt; uiNeed THEN
+    pVal^.xValid := FALSE;
+    pVal^.uiErr  := 16#FF00 OR INT_TO_UINT(E_IolErrSource.FRAME);
+    RETURN;
+END_IF
+CASE stDef.eType OF
+    E_IolDataType.U8:  pVal^.diRaw := BYTE_TO_DINT(abBuf[0]);
+    E_IolDataType.I8:  pVal^.diRaw := SINT_TO_DINT(BYTE_TO_SINT(abBuf[0]));
+    E_IolDataType.U16: pVal^.diRaw := UINT_TO_DINT(F_IolGetU16BE(ADR(abBuf), 0));
+    E_IolDataType.I16: pVal^.diRaw := INT_TO_DINT(UINT_TO_INT(F_IolGetU16BE(ADR(abBuf), 0)));
+ELSE
+    pVal^.diRaw := DWORD_TO_DINT(F_IolGetU32BE(ADR(abBuf), 0));   // U32/I32/OCTET 4 byte đầu
+END_CASE
+pVal^.xValid := TRUE;
+pVal^.uiErr  := 0;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giải mã abBuf (big-endian) thành diRaw của tham số iParam
+METHOD PROTECTED DecodeParam
+VAR_INPUT
+    iParam : INT;
+    uiLen  : UINT;
+END_VAR
+VAR
+    stDef  : ST_IolParamDef;
+    pVal   : POINTER TO ST_IolParamVal;
+    uiNeed : UINT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="StoreIdent" ObjectId="dd54acaf-67ca-46d9-91d3-aa8b764a7816">
+              <interface>
+                <inputVars>
+                  <variable name="uiIndex">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="uiLen">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lưu chuỗi Ident vừa đọc (abBuf) vào stIdent
+METHOD PROTECTED StoreIdent
+VAR_INPUT
+    uiIndex : UINT;
+    uiLen   : UINT;
+END_VAR
+VAR
+    sVal : STRING(64);
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="sVal">
+                    <type>
+                      <string length="64" />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lưu chuỗi Ident vừa đọc (abBuf) vào stIdent
+METHOD PROTECTED StoreIdent
+VAR_INPUT
+    uiIndex : UINT;
+    uiLen   : UINT;
+END_VAR
+VAR
+    sVal : STRING(64);
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Lưu chuỗi Ident vừa đọc (abBuf) vào stIdent</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">sVal := F_IolBytesToStr(ADR(abBuf), uiLen);
+CASE uiIndex OF
+    16: stIdent.sVendorName  := sVal;
+    17: stIdent.sVendorText  := sVal;
+    18: stIdent.sProductName := sVal;
+    19: stIdent.sProductId   := sVal;
+    20: stIdent.sProductText := sVal;
+    21: stIdent.sSerialNo    := sVal;
+    22: stIdent.sHwRev       := sVal;
+    23: stIdent.sFwRev       := sVal;
+    24: stIdent.sAppTag      := sVal;
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lưu chuỗi Ident vừa đọc (abBuf) vào stIdent
+METHOD PROTECTED StoreIdent
+VAR_INPUT
+    uiIndex : UINT;
+    uiLen   : UINT;
+END_VAR
+VAR
+    sVal : STRING(64);
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="JobFinished" ObjectId="84e823d0-e976-43d6-b880-8f9aa24b824d">
+              <interface>
+                <inputVars>
+                  <variable name="xErr">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xử lý kết quả của việc vừa xong
+METHOD PROTECTED JobFinished
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    pVal : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <localVars>
+                  <variable name="pVal">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="ST_IolParamVal" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xử lý kết quả của việc vừa xong
+METHOD PROTECTED JobFinished
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    pVal : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Xử lý kết quả của việc vừa xong</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">udiJobCount := udiJobCount + 1;
+IF xErr THEN
+    udiJobErrCount := udiJobErrCount + 1;
+END_IF
+
+CASE eJob OF
+    E_IolDevJob.PARAM_RD:
+        pVal := THIS^.GetValPtr(iJobParam);
+        IF pVal &lt;&gt; 0 THEN
+            IF xErr THEN
+                pVal^.xValid := FALSE;
+                pVal^.uiErr  := ErrCode();
+            ELSE
+                DecodeParam(iJobParam, fbCall.uiLenRead);
+            END_IF
+        END_IF
+        IF xErr THEN
+            ReportErr();
+        END_IF
+        THIS^.OnParamDone(iParam := iJobParam, xErr := xErr);
+
+    E_IolDevJob.PARAM_WR:
+        pVal := THIS^.GetValPtr(iJobParam);
+        IF pVal &lt;&gt; 0 THEN
+            pVal^.xDirty := FALSE;
+            IF xErr THEN
+                pVal^.uiErr := ErrCode();
+            ELSE
+                pVal^.uiErr := 0;
+                axPendRead[iJobParam] := TRUE;     // đọc lại để xác nhận giá trị device đã nhận
+            END_IF
+        END_IF
+        IF xErr THEN
+            ReportErr();
+        END_IF
+
+    E_IolDevJob.IDENT:
+        // index Ident là tuỳ chọn theo device: lỗi thì bỏ qua, giữ chuỗi rỗng
+        IF NOT xErr THEN
+            StoreIdent(uiJobIndex, fbCall.uiLenRead);
+        END_IF
+
+    E_IolDevJob.CUSTOM:
+        IF NOT THIS^.OnCustomDone(uiIndex := uiJobIndex, eService := eJobService, xErr := xErr,
+                                  uiDevErr := fbCall.uiIolDevErr, uiLen := fbCall.uiLenRead) AND xErr THEN
+            ReportErr();
+        END_IF
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">// Xử lý kết quả của việc vừa xong
+METHOD PROTECTED JobFinished
+VAR_INPUT
+    xErr : BOOL;
+END_VAR
+VAR
+    pVal : POINTER TO ST_IolParamVal;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Lớp cơ sở cho mọi device IO-Link: giải mã PQI, trình tự đọc/ghi tham số theo bảng IODD của lớp con,
+// đọc Ident 16..24, kênh ISDU tự do cho lớp con. Lớp con override: ParamCount, GetParamDef, GetValPtr,
+// OnParamDone, OnCustomDone và gọi SUPER^() trong thân.
+FUNCTION_BLOCK FB_IolDevBase
+VAR_INPUT
+    refMaster          : REFERENCE TO FB_IolMaster;
+    usiPort            : USINT;
+    bPQI               : BYTE;                  // Port Qualifier từ GVL_IO
+    xWriteEnable       : BOOL;                  // khoá ghi tham số / System Command (Maintenance)
+    xAutoReadOnConnect : BOOL := TRUE;          // tự đọc Ident + ReadAll khi PD chuyển hợp lệ
+    xResetErr          : BOOL;                  // sườn lên: xoá lỗi gần nhất
+END_VAR
+VAR_OUTPUT
+    stDiag         : ST_IolPortDiag;
+    xPdValid       : BOOL;                      // PQ AND DA
+    xBusy          : BOOL;                      // đang chạy hoặc còn việc chờ
+    xLastError     : BOOL;                      // lỗi gần nhất, giữ tới xResetErr
+    eLastErrSrc    : E_IolErrSource;
+    uiLastDevErr   : UINT;
+    wsLastErr      : WSTRING(80);
+    stIdent        : ST_IolIdent;
+    udiJobCount    : UDINT;
+    udiJobErrCount : UDINT;
+END_VAR
+VAR
+    fbCall      : FB_IolCall;                   // instance riêng mỗi device
+    eSeq        : E_IolDevSeq;
+    eJob        : E_IolDevJob;
+    iJobParam   : INT;
+    uiJobIndex  : UINT;
+    usiJobSub   : USINT;
+    eJobService : E_IolService := E_IolService.READ;
+    uiJobLen    : UINT;
+    xCallExec   : BOOL;
+    abBuf       : ARRAY[0..GVL_IolConst.uiMAX_DATA - 1] OF BYTE;   // dữ liệu ghi / nhận của việc đang chạy
+    axPendRead  : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    axPendWrite : ARRAY[0..GVL_IolConst.iMAX_PARAM - 1] OF BOOL;
+    wPendIdent  : WORD;                         // bit n = cần đọc index 16 + n
+    xPendCustom : BOOL;
+    stCustom    : ST_IolRequest;
+    rtPdValid   : R_TRIG;
+    rtResetErr  : R_TRIG;
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>0deb022d-e9de-4b71-bd43-cf708292b29b</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="FB_IolDevBase" ObjectId="0deb022d-e9de-4b71-bd43-cf708292b29b">
+              <Object Name="ParamCount" ObjectId="6582643d-f2a8-4d15-b023-118c5e21f5b4" />
+              <Object Name="GetParamDef" ObjectId="cfe7ff5d-82b7-420d-ba5a-d74a51960969" />
+              <Object Name="GetValPtr" ObjectId="ac45532d-dbec-420a-b6d0-63f993cdd4e2" />
+              <Object Name="OnParamDone" ObjectId="348356ed-4be5-4d80-be43-2f24b5eb752e" />
+              <Object Name="OnCustomDone" ObjectId="e4119412-ac6e-4c0c-83bf-51be904ea2ad" />
+              <Object Name="RequestReadAll" ObjectId="609f05b9-29f4-4a47-abed-a74bd4e8d95d" />
+              <Object Name="RequestReadIdent" ObjectId="84716bc1-95bf-4585-9e7d-2a1a13096df3" />
+              <Object Name="RequestRead" ObjectId="2c32f4cc-df68-475f-af0c-42957e624fcb" />
+              <Object Name="RequestWrite" ObjectId="edceaec8-57af-4aa8-8200-262c6d433fc5" />
+              <Object Name="RequestCustom" ObjectId="f3f8ad37-6571-4360-a8b1-c5010b7cab61" />
+              <Object Name="SetLocalErr" ObjectId="cc277707-c63c-440a-8bfe-0eafc2578379" />
+              <Object Name="ReportErr" ObjectId="ba195582-35cb-4eb2-95df-c0bff75284dc" />
+              <Object Name="ErrCode" ObjectId="d3c80b44-05f1-4e2e-971b-76ec8d3175ba" />
+              <Object Name="HasPending" ObjectId="7b7b86be-c866-4d60-9d11-b6cebfc048eb" />
+              <Object Name="DropAll" ObjectId="6f635089-b44d-47dc-ac67-da8d4b90e2df" />
+              <Object Name="SelectJob" ObjectId="ebd27379-91c5-4c3b-a515-5715e411ae8d" />
+              <Object Name="PrepareWrite" ObjectId="623aad2c-ecde-42b0-bd0c-309c7ab4f615" />
+              <Object Name="DecodeParam" ObjectId="87ee5e0d-727f-4b27-a847-b61c761a6cae" />
+              <Object Name="StoreIdent" ObjectId="dd54acaf-67ca-46d9-91d3-aa8b764a7816" />
+              <Object Name="JobFinished" ObjectId="84e823d0-e976-43d6-b880-8f9aa24b824d" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,431 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.6076277" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="ST_HMI_O5D150">
+        <baseType>
+          <struct>
+            <variable name="xCmdReadAll">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Lệnh ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdReadIdent">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteSP1">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> ghi uiSetSP1 (cần xMaintEnable)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdWriteLogic">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteLaser">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdWriteDisplay">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xCmdTestEvt1On">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> System Command 240 (cần xMaintEnable)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdTestEvt1Off">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 241</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdTestEvt2On">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 242</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdTestEvt2Off">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 243</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdReadEvents">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> đọc index 37 ngay (thử lại cả khi đã báo không hỗ trợ)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xCmdResetErr">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xAlignMode">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> giữ TRUE: đọc Align (69) chu kỳ chậm</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiSetSP1">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="100" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> cm, 5..200</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetLogic">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 NO, 1 NC</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetLaser">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 Off, 1 On</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiSetDisplay">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 Off, 1 On, 2 Rotated</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiDistance_cm">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Process data ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="rDistance_m">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="xOut1">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xPdValid">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xOutOfRange">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xPQ">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xDA">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xDE">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="uiSP1">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Tham số đọc về ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiLogic">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="uiLimitMin_cm">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="uiLimitMax_cm">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="usiAlign">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> %</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiLaser">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="usiDisplay">
+              <type>
+                <USINT />
+              </type>
+            </variable>
+            <variable name="xParamValid">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> SP1 đọc được lần gần nhất</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sVendor">
+              <type>
+                <string length="64" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Nhận dạng ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sProduct">
+              <type>
+                <string length="64" />
+              </type>
+            </variable>
+            <variable name="sSerial">
+              <type>
+                <string length="64" />
+              </type>
+            </variable>
+            <variable name="sFwRev">
+              <type>
+                <string length="64" />
+              </type>
+            </variable>
+            <variable name="axEvtActive">
+              <type>
+                <array>
+                  <dimension lower="0" upper="(GVL_O5D150_Def.iEVT_COUNT - 1)" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> theo GVL_O5D150_Def.aEvtDef</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiEvtCount">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="wUnknownEvt">
+              <type>
+                <WORD />
+              </type>
+            </variable>
+            <variable name="xEvtListNotSupported">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="xBusy">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Trạng thái / lỗi ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="xError">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> lỗi gần nhất (giữ tới xCmdResetErr)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiDevErr">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="wsErrText">
+              <type>
+                <wstring length="80" />
+              </type>
+            </variable>
+            <variable name="xWriteLocked">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> = NOT xMaintEnable</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Giao tiếp HMI &lt;-&gt; FB_Dev_O5D150 (lệnh: HMI đặt TRUE, PRG_IOLink tự xoá)
+TYPE ST_HMI_O5D150 :
+STRUCT
+    // --- Lệnh ---
+    xCmdReadAll      : BOOL;
+    xCmdReadIdent    : BOOL;
+    xCmdWriteSP1     : BOOL;          // ghi uiSetSP1 (cần xMaintEnable)
+    xCmdWriteLogic   : BOOL;
+    xCmdWriteLaser   : BOOL;
+    xCmdWriteDisplay : BOOL;
+    xCmdTestEvt1On   : BOOL;          // System Command 240 (cần xMaintEnable)
+    xCmdTestEvt1Off  : BOOL;          // 241
+    xCmdTestEvt2On   : BOOL;          // 242
+    xCmdTestEvt2Off  : BOOL;          // 243
+    xCmdReadEvents   : BOOL;          // đọc index 37 ngay (thử lại cả khi đã báo không hỗ trợ)
+    xCmdResetErr     : BOOL;
+    xAlignMode       : BOOL;          // giữ TRUE: đọc Align (69) chu kỳ chậm
+
+    // --- Giá trị đặt ---
+    uiSetSP1         : UINT := 100;   // cm, 5..200
+    usiSetLogic      : USINT;         // 0 NO, 1 NC
+    usiSetLaser      : USINT := 1;    // 0 Off, 1 On
+    usiSetDisplay    : USINT := 1;    // 0 Off, 1 On, 2 Rotated
+
+    // --- Process data ---
+    uiDistance_cm    : UINT;
+    rDistance_m      : REAL;
+    xOut1            : BOOL;
+    xPdValid         : BOOL;
+    xOutOfRange      : BOOL;
+    xPQ              : BOOL;
+    xDA              : BOOL;
+    xDE              : BOOL;
+
+    // --- Tham số đọc về ---
+    uiSP1            : UINT;
+    usiLogic         : USINT;
+    uiLimitMin_cm    : UINT;
+    uiLimitMax_cm    : UINT;
+    usiAlign         : USINT;         // %
+    usiLaser         : USINT;
+    usiDisplay       : USINT;
+    xParamValid      : BOOL;          // SP1 đọc được lần gần nhất
+
+    // --- Nhận dạng ---
+    sVendor          : STRING(64);
+    sProduct         : STRING(64);
+    sSerial          : STRING(64);
+    sFwRev           : STRING(64);
+
+    // --- Event ---
+    axEvtActive      : ARRAY[0..GVL_O5D150_Def.iEVT_COUNT - 1] OF BOOL;   // theo GVL_O5D150_Def.aEvtDef
+    uiEvtCount       : UINT;
+    wUnknownEvt      : WORD;
+    xEvtListNotSupported : BOOL;
+
+    // --- Trạng thái / lỗi ---
+    xBusy            : BOOL;
+    xError           : BOOL;          // lỗi gần nhất (giữ tới xCmdResetErr)
+    uiDevErr         : UINT;
+    wsErrText        : WSTRING(80);
+    xWriteLocked     : BOOL;          // = NOT xMaintEnable
+END_STRUCT
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>84d2702a-c661-4129-9e0e-d2d8feb3291c</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giao tiếp HMI &lt;-&gt; FB_Dev_O5D150 (lệnh: HMI đặt TRUE, PRG_IOLink tự xoá)</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="O5D150">
+            <Object Name="ST_HMI_O5D150" ObjectId="84d2702a-c661-4129-9e0e-d2d8feb3291c" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,338 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:09.2062848" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
+      <Interface name="ITF_IolRecordAccess" ObjectId="00d2bc1d-7c63-481b-baed-b67345d1d5ca">
+        <Methods>
+          <Method name="Write" ObjectId="f45fe20e-a257-48c7-bf63-5a3230ef2046">
+            <interface>
+              <returnType>
+                <BOOL />
+              </returnType>
+              <inputVars>
+                <variable name="xReq">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="dwId">
+                  <type>
+                    <DWORD />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> ID submodule (CommFB.SUBSLOT_ID), mock bỏ qua</xhtml>
+                  </documentation>
+                </variable>
+                <variable name="iIndex">
+                  <type>
+                    <INT />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> record index (0xB400 truyền dạng INT)</xhtml>
+                  </documentation>
+                </variable>
+                <variable name="iLen">
+                  <type>
+                    <INT />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> số byte ghi</xhtml>
+                  </documentation>
+                </variable>
+                <variable name="pData">
+                  <type>
+                    <pointer>
+                      <baseType>
+                        <BYTE />
+                      </baseType>
+                    </pointer>
+                  </type>
+                </variable>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                    <InterfaceAsPlainText>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi record (WRREC). Trả TRUE khi đã kết thúc (xDone hoặc xError).
+METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;                 // ID submodule (CommFB.SUBSLOT_ID), mock bỏ qua
+    iIndex : INT;                   // record index (0xB400 truyền dạng INT)
+    iLen   : INT;                   // số byte ghi
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;               // STATUS PNIO 4 byte
+END_VAR
+</xhtml>
+                    </InterfaceAsPlainText>
+                  </data>
+                </addData>
+              </inputVars>
+              <outputVars>
+                <variable name="xDone">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="xBusy">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="xError">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="dwStatus">
+                  <type>
+                    <DWORD />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> STATUS PNIO 4 byte</xhtml>
+                  </documentation>
+                </variable>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                    <InterfaceAsPlainText>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi record (WRREC). Trả TRUE khi đã kết thúc (xDone hoặc xError).
+METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;                 // ID submodule (CommFB.SUBSLOT_ID), mock bỏ qua
+    iIndex : INT;                   // record index (0xB400 truyền dạng INT)
+    iLen   : INT;                   // số byte ghi
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;               // STATUS PNIO 4 byte
+END_VAR
+</xhtml>
+                    </InterfaceAsPlainText>
+                  </data>
+                </addData>
+              </outputVars>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Ghi record (WRREC). Trả TRUE khi đã kết thúc (xDone hoặc xError).</xhtml>
+              </documentation>
+            </interface>
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Ghi record (WRREC). Trả TRUE khi đã kết thúc (xDone hoặc xError).
+METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;                 // ID submodule (CommFB.SUBSLOT_ID), mock bỏ qua
+    iIndex : INT;                   // record index (0xB400 truyền dạng INT)
+    iLen   : INT;                   // số byte ghi
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;               // STATUS PNIO 4 byte
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+            <addData />
+          </Method>
+          <Method name="Read" ObjectId="a2123f67-1c94-4a76-84a3-1b1321fb7c77">
+            <interface>
+              <returnType>
+                <BOOL />
+              </returnType>
+              <inputVars>
+                <variable name="xReq">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="dwId">
+                  <type>
+                    <DWORD />
+                  </type>
+                </variable>
+                <variable name="iIndex">
+                  <type>
+                    <INT />
+                  </type>
+                </variable>
+                <variable name="iMLen">
+                  <type>
+                    <INT />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> kích thước buffer nhận</xhtml>
+                  </documentation>
+                </variable>
+                <variable name="pData">
+                  <type>
+                    <pointer>
+                      <baseType>
+                        <BYTE />
+                      </baseType>
+                    </pointer>
+                  </type>
+                </variable>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                    <InterfaceAsPlainText>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc record (RDREC). Trả TRUE khi đã kết thúc (xValid hoặc xError).
+METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;                   // kích thước buffer nhận
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;                 // số byte nhận được
+END_VAR
+</xhtml>
+                    </InterfaceAsPlainText>
+                  </data>
+                </addData>
+              </inputVars>
+              <outputVars>
+                <variable name="xValid">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="xBusy">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="xError">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="dwStatus">
+                  <type>
+                    <DWORD />
+                  </type>
+                </variable>
+                <variable name="iLen">
+                  <type>
+                    <INT />
+                  </type>
+                  <documentation>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml"> số byte nhận được</xhtml>
+                  </documentation>
+                </variable>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                    <InterfaceAsPlainText>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc record (RDREC). Trả TRUE khi đã kết thúc (xValid hoặc xError).
+METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;                   // kích thước buffer nhận
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;                 // số byte nhận được
+END_VAR
+</xhtml>
+                    </InterfaceAsPlainText>
+                  </data>
+                </addData>
+              </outputVars>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Đọc record (RDREC). Trả TRUE khi đã kết thúc (xValid hoặc xError).</xhtml>
+              </documentation>
+            </interface>
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Đọc record (RDREC). Trả TRUE khi đã kết thúc (xValid hoặc xError).
+METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;                   // kích thước buffer nhận
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;                 // số byte nhận được
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+            <addData />
+          </Method>
+        </Methods>
+        <InterfaceAsPlainText>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml">// Trừu tượng hoá đọc/ghi record PROFINET (CommFB.WRREC/RDREC thật hoặc mock Simulation)
+// Quy ước như CommFB: giữ xReq = TRUE tới khi có kết quả, hạ xReq ít nhất 1 lần gọi trước request mới; gọi mỗi chu kỳ đúng 1 lần.
+INTERFACE ITF_IolRecordAccess
+</xhtml>
+        </InterfaceAsPlainText>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Trừu tượng hoá đọc/ghi record PROFINET (CommFB.WRREC/RDREC thật hoặc mock Simulation)
+ Quy ước như CommFB: giữ xReq = TRUE tới khi có kết quả, hạ xReq ít nhất 1 lần gọi trước request mới; gọi mỗi chu kỳ đúng 1 lần.</xhtml>
+        </documentation>
+        <addData />
+      </Interface>
+    </data>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="ITF_IolRecordAccess" ObjectId="00d2bc1d-7c63-481b-baed-b67345d1d5ca">
+              <Object Name="Write" ObjectId="f45fe20e-a257-48c7-bf63-5a3230ef2046" />
+              <Object Name="Read" ObjectId="a2123f67-1c94-4a76-84a3-1b1321fb7c77" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

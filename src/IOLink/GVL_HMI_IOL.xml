@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.8642142" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/globalvars" handleUnknown="implementation">
+      <globalVars name="GVL_HMI_IOL">
+        <variable name="xMaintEnable">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> cho phép ghi tham số / System Command (khoá mặc định)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xCmdResetMaster">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> xoá hàng đợi / thoát STUCK (chỉ khi xMaintEnable)</xhtml>
+          </documentation>
+        </variable>
+        <variable name="stO5D150">
+          <type>
+            <derived name="ST_HMI_O5D150" />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> O5D150 port 1</xhtml>
+          </documentation>
+        </variable>
+        <variable name="eMasterState">
+          <type>
+            <derived name="E_IolCallState" />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Trạng thái master AL1100 ---</xhtml>
+          </documentation>
+        </variable>
+        <variable name="udiCallCount">
+          <type>
+            <UDINT />
+          </type>
+        </variable>
+        <variable name="udiErrCount">
+          <type>
+            <UDINT />
+          </type>
+        </variable>
+        <variable name="xSimMode">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> bản sao GVL_IolSys.xSimMode để hiển thị</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmP1_NoDevice">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> PQI.DA = 0 &gt; 2 s</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmP1_PdInvalid">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> DA = 1 nhưng PQ = 0 &gt; 1 s</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmP1_DevErr">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> PQI.DE</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmP1_EvtError">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> có event loại ERROR đang active</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmIolCallErr">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> lần gọi ISDU gần nhất lỗi</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlmMasterStuck">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> master kẹt, cần xCmdResetMaster</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xAlarmAny">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> OR các alarm mức Lỗi</xhtml>
+          </documentation>
+        </variable>
+        <variable name="xWarningAny">
+          <type>
+            <BOOL />
+          </type>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> OR các cảnh báo</xhtml>
+          </documentation>
+        </variable>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">{attribute 'qualified_only'}
+// Giao tiếp HMI cho IO-Link (tách khỏi GVL_HMI của trình tự đèn DXP)
+VAR_GLOBAL
+    xMaintEnable    : BOOL;                 // cho phép ghi tham số / System Command (khoá mặc định)
+    xCmdResetMaster : BOOL;                 // xoá hàng đợi / thoát STUCK (chỉ khi xMaintEnable)
+    stO5D150        : ST_HMI_O5D150;        // O5D150 port 1
+
+    // --- Trạng thái master AL1100 ---
+    eMasterState    : E_IolCallState;
+    udiCallCount    : UDINT;
+    udiErrCount     : UDINT;
+    xSimMode        : BOOL;                 // bản sao GVL_IolSys.xSimMode để hiển thị
+
+    // --- Alarm (bit) ---
+    xAlmP1_NoDevice   : BOOL;               // PQI.DA = 0 &gt; 2 s
+    xAlmP1_PdInvalid  : BOOL;               // DA = 1 nhưng PQ = 0 &gt; 1 s
+    xAlmP1_DevErr     : BOOL;               // PQI.DE
+    xAlmP1_EvtError   : BOOL;               // có event loại ERROR đang active
+    xAlmIolCallErr    : BOOL;               // lần gọi ISDU gần nhất lỗi
+    xAlmMasterStuck   : BOOL;               // master kẹt, cần xCmdResetMaster
+    xAlarmAny         : BOOL;               // OR các alarm mức Lỗi
+    xWarningAny       : BOOL;               // OR các cảnh báo
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>ee317adc-372d-42f3-9d5c-69c6e2c92198</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Giao tiếp HMI cho IO-Link (tách khỏi GVL_HMI của trình tự đèn DXP)</xhtml>
+        </documentation>
+      </globalVars>
+    </data>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Object Name="GVL_HMI_IOL" ObjectId="ee317adc-372d-42f3-9d5c-69c6e2c92198" />
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

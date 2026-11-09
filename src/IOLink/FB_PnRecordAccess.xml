@@ -1,0 +1,474 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:23.9468104" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_PnRecordAccess" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="usiSlot">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="GVL_IolConst.usiAL1_SLOT" />
+              </initialValue>
+            </variable>
+            <variable name="usiSubslot">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="GVL_IolConst.usiAL1_SUBSLOT_CAP" />
+              </initialValue>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Transport PROFINET thật: bọc CommFB.WRREC / CommFB.RDREC tới submodule CAP của AL1100.
+// HIỆN LÀ KHUNG: chưa có PN Controller + AL1100 được duyệt (IP, station name, license) nên chưa gọi CommFB;
+// mọi request trả lỗi dwSTAT_NOT_CONFIGURED để master báo rõ thay vì treo.
+// TODO PROFINET:
+//   1. Thêm AL1100 dưới PN_Controller, đặt bus cycle task = MainTask.
+//   2. VAR: fbWr : CommFB.WRREC; fbRd : CommFB.RDREC;
+//   3. dwId := CommFB.SUBSLOT_ID(EN := TRUE, ID := &lt;AL1100&gt;.DeviceID, SLOT := usiSlot, SUBSLOT := usiSubslot);
+//      dwId = CommFB.Constants.INVALID_ID -&gt; lỗi cấu hình.
+//   4. Write: fbWr(REQ := xReq, ID := dwId, INDEX := iIndex, LEN := iLen, RECORD := &lt;buffer&gt;); xDone := fbWr.DONE ...
+//      Read : fbRd(REQ := xReq, ID := dwId, INDEX := iIndex, MLEN := iMLen, RECORD := &lt;buffer&gt;); xValid := fbRd.VALID; iLen := fbRd.LEN ...
+//      Kiểu chân RECORD (ANY / POINTER) phải xem trong Library Manager rồi copy buffer cho đúng.
+//   5. Luôn viết đủ namespace CommFB.* (tránh trùng tên với lib Turck commfb*).
+FUNCTION_BLOCK FB_PnRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    usiSlot    : USINT := GVL_IolConst.usiAL1_SLOT;
+    usiSubslot : USINT := GVL_IolConst.usiAL1_SUBSLOT_CAP;
+END_VAR
+VAR_OUTPUT
+    xNotConfigured : BOOL := TRUE;    // TRUE khi FB còn là khung
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </inputVars>
+          <outputVars>
+            <variable name="xNotConfigured">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE khi FB còn là khung</xhtml>
+              </documentation>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                <InterfaceAsPlainText>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Transport PROFINET thật: bọc CommFB.WRREC / CommFB.RDREC tới submodule CAP của AL1100.
+// HIỆN LÀ KHUNG: chưa có PN Controller + AL1100 được duyệt (IP, station name, license) nên chưa gọi CommFB;
+// mọi request trả lỗi dwSTAT_NOT_CONFIGURED để master báo rõ thay vì treo.
+// TODO PROFINET:
+//   1. Thêm AL1100 dưới PN_Controller, đặt bus cycle task = MainTask.
+//   2. VAR: fbWr : CommFB.WRREC; fbRd : CommFB.RDREC;
+//   3. dwId := CommFB.SUBSLOT_ID(EN := TRUE, ID := &lt;AL1100&gt;.DeviceID, SLOT := usiSlot, SUBSLOT := usiSubslot);
+//      dwId = CommFB.Constants.INVALID_ID -&gt; lỗi cấu hình.
+//   4. Write: fbWr(REQ := xReq, ID := dwId, INDEX := iIndex, LEN := iLen, RECORD := &lt;buffer&gt;); xDone := fbWr.DONE ...
+//      Read : fbRd(REQ := xReq, ID := dwId, INDEX := iIndex, MLEN := iMLen, RECORD := &lt;buffer&gt;); xValid := fbRd.VALID; iLen := fbRd.LEN ...
+//      Kiểu chân RECORD (ANY / POINTER) phải xem trong Library Manager rồi copy buffer cho đúng.
+//   5. Luôn viết đủ namespace CommFB.* (tránh trùng tên với lib Turck commfb*).
+FUNCTION_BLOCK FB_PnRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    usiSlot    : USINT := GVL_IolConst.usiAL1_SLOT;
+    usiSubslot : USINT := GVL_IolConst.usiAL1_SUBSLOT_CAP;
+END_VAR
+VAR_OUTPUT
+    xNotConfigured : BOOL := TRUE;    // TRUE khi FB còn là khung
+END_VAR
+</xhtml>
+                </InterfaceAsPlainText>
+              </data>
+            </addData>
+          </outputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Implements>ITF_IolRecordAccess</Implements>
+              </Inheritance>
+            </data>
+          </addData>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Transport PROFINET thật: bọc CommFB.WRREC / CommFB.RDREC tới submodule CAP của AL1100.
+ HIỆN LÀ KHUNG: chưa có PN Controller + AL1100 được duyệt (IP, station name, license) nên chưa gọi CommFB;
+ mọi request trả lỗi dwSTAT_NOT_CONFIGURED để master báo rõ thay vì treo.
+ TODO PROFINET:
+   1. Thêm AL1100 dưới PN_Controller, đặt bus cycle task = MainTask.
+   2. VAR: fbWr : CommFB.WRREC; fbRd : CommFB.RDREC;
+   3. dwId := CommFB.SUBSLOT_ID(EN := TRUE, ID := &lt;AL1100&gt;.DeviceID, SLOT := usiSlot, SUBSLOT := usiSubslot);
+      dwId = CommFB.Constants.INVALID_ID -&gt; lỗi cấu hình.
+   4. Write: fbWr(REQ := xReq, ID := dwId, INDEX := iIndex, LEN := iLen, RECORD := &lt;buffer&gt;); xDone := fbWr.DONE ...
+      Read : fbRd(REQ := xReq, ID := dwId, INDEX := iIndex, MLEN := iMLen, RECORD := &lt;buffer&gt;); xValid := fbRd.VALID; iLen := fbRd.LEN ...
+      Kiểu chân RECORD (ANY / POINTER) phải xem trong Library Manager rồi copy buffer cho đúng.
+   5. Luôn viết đủ namespace CommFB.* (tránh trùng tên với lib Turck commfb*).</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// Không có xử lý chu kỳ: toàn bộ việc nằm trong method Write/Read (gọi bởi FB_IolMaster).
+xNotConfigured := TRUE;
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Write" ObjectId="d88f03b4-b305-43f2-bddb-af33efb6353f">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="xReq">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwId">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="iLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <outputVars>
+                  <variable name="xDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xBusy">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xError">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwStatus">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </outputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// TODO PROFINET: thay bằng CommFB.WRREC (xem ghi chú khai báo FB)
+xDone  := FALSE;
+xBusy  := FALSE;
+xError := xReq;
+IF xReq THEN
+    dwStatus := GVL_IolConst.dwSTAT_NOT_CONFIGURED;
+ELSE
+    dwStatus := 0;
+END_IF
+Write := xReq;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Write : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iLen   : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xDone    : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Read" ObjectId="0c2f7068-e25e-4903-a6c4-6d54a5f5e3d8">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="xReq">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwId">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="iMLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </inputVars>
+                <outputVars>
+                  <variable name="xValid">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xBusy">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="xError">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="dwStatus">
+                    <type>
+                      <DWORD />
+                    </type>
+                  </variable>
+                  <variable name="iLen">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+                      <InterfaceAsPlainText>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+</xhtml>
+                      </InterfaceAsPlainText>
+                    </data>
+                  </addData>
+                </outputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// TODO PROFINET: thay bằng CommFB.RDREC (xem ghi chú khai báo FB)
+xValid := FALSE;
+xBusy  := FALSE;
+xError := xReq;
+iLen   := 0;
+IF xReq THEN
+    dwStatus := GVL_IolConst.dwSTAT_NOT_CONFIGURED;
+ELSE
+    dwStatus := 0;
+END_IF
+Read := xReq;
+</xhtml>
+                </ST>
+              </body>
+              <InterfaceAsPlainText>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">METHOD Read : BOOL
+VAR_INPUT
+    xReq   : BOOL;
+    dwId   : DWORD;
+    iIndex : INT;
+    iMLen  : INT;
+    pData  : POINTER TO BYTE;
+END_VAR
+VAR_OUTPUT
+    xValid   : BOOL;
+    xBusy    : BOOL;
+    xError   : BOOL;
+    dwStatus : DWORD;
+    iLen     : INT;
+END_VAR
+</xhtml>
+              </InterfaceAsPlainText>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Transport PROFINET thật: bọc CommFB.WRREC / CommFB.RDREC tới submodule CAP của AL1100.
+// HIỆN LÀ KHUNG: chưa có PN Controller + AL1100 được duyệt (IP, station name, license) nên chưa gọi CommFB;
+// mọi request trả lỗi dwSTAT_NOT_CONFIGURED để master báo rõ thay vì treo.
+// TODO PROFINET:
+//   1. Thêm AL1100 dưới PN_Controller, đặt bus cycle task = MainTask.
+//   2. VAR: fbWr : CommFB.WRREC; fbRd : CommFB.RDREC;
+//   3. dwId := CommFB.SUBSLOT_ID(EN := TRUE, ID := &lt;AL1100&gt;.DeviceID, SLOT := usiSlot, SUBSLOT := usiSubslot);
+//      dwId = CommFB.Constants.INVALID_ID -&gt; lỗi cấu hình.
+//   4. Write: fbWr(REQ := xReq, ID := dwId, INDEX := iIndex, LEN := iLen, RECORD := &lt;buffer&gt;); xDone := fbWr.DONE ...
+//      Read : fbRd(REQ := xReq, ID := dwId, INDEX := iIndex, MLEN := iMLen, RECORD := &lt;buffer&gt;); xValid := fbRd.VALID; iLen := fbRd.LEN ...
+//      Kiểu chân RECORD (ANY / POINTER) phải xem trong Library Manager rồi copy buffer cho đúng.
+//   5. Luôn viết đủ namespace CommFB.* (tránh trùng tên với lib Turck commfb*).
+FUNCTION_BLOCK FB_PnRecordAccess IMPLEMENTS ITF_IolRecordAccess
+VAR_INPUT
+    usiSlot    : USINT := GVL_IolConst.usiAL1_SLOT;
+    usiSubslot : USINT := GVL_IolConst.usiAL1_SUBSLOT_CAP;
+END_VAR
+VAR_OUTPUT
+    xNotConfigured : BOOL := TRUE;    // TRUE khi FB còn là khung
+END_VAR
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>606af1da-b547-4888-abc6-2d41d79a146f</ObjectId>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="Common">
+            <Object Name="FB_PnRecordAccess" ObjectId="606af1da-b547-4888-abc6-2d41d79a146f">
+              <Object Name="Write" ObjectId="d88f03b4-b305-43f2-bddb-af33efb6353f" />
+              <Object Name="Read" ObjectId="0c2f7068-e25e-4903-a6c4-6d54a5f5e3d8" />
+            </Object>
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>

@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 1" creationDateTime="2026-11-07T15:35:25.1897484" />
+  <contentHeader name="TBEN_L5_PLC11.project" modificationDateTime="2026-11-07T15:09:07.4034196">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+    <addData>
+      <data name="http://www.3s-software.com/plcopenxml/projectinformation" handleUnknown="implementation">
+        <ProjectInformation />
+      </data>
+    </addData>
+  </contentHeader>
+  <types>
+    <dataTypes>
+      <dataType name="ST_O5D150_PdLayout">
+        <baseType>
+          <struct>
+            <variable name="usiOut1Bit">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> bit OUT1 trong word PDin</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiDistBitOffset">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> bit bắt đầu của Distance</xhtml>
+              </documentation>
+            </variable>
+            <variable name="wDistMask">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> mặt nạ sau khi dịch (12 bit = 16#0FFF)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiDistMin">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dải đo hợp lệ [cm]</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiDistMax">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="rGradient">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> m / digit</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+            <InterfaceAsPlainText>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml">// Bố cục PDin O5D150 (16 bit, big-endian) - tách thành hằng để sửa theo IODD mà không đổi logic
+TYPE ST_O5D150_PdLayout :
+STRUCT
+    usiOut1Bit       : USINT;      // bit OUT1 trong word PDin
+    usiDistBitOffset : USINT;      // bit bắt đầu của Distance
+    wDistMask        : WORD;       // mặt nạ sau khi dịch (12 bit = 16#0FFF)
+    uiDistMin        : UINT;       // dải đo hợp lệ [cm]
+    uiDistMax        : UINT;
+    rGradient        : REAL;       // m / digit
+END_STRUCT
+END_TYPE
+</xhtml>
+            </InterfaceAsPlainText>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>cb39e495-674b-4833-8ad0-354c64c616a7</ObjectId>
+          </data>
+        </addData>
+        <documentation>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml"> Bố cục PDin O5D150 (16 bit, big-endian) - tách thành hằng để sửa theo IODD mà không đổi logic</xhtml>
+        </documentation>
+      </dataType>
+    </dataTypes>
+    <pous />
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+  <addData>
+    <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+      <ProjectStructure>
+        <Folder Name="IOLink">
+          <Folder Name="O5D150">
+            <Object Name="ST_O5D150_PdLayout" ObjectId="cb39e495-674b-4833-8ad0-354c64c616a7" />
+          </Folder>
+        </Folder>
+      </ProjectStructure>
+    </data>
+  </addData>
+</project>
